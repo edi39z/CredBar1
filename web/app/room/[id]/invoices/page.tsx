@@ -1,11 +1,9 @@
-import { InvoiceManagement } from "@/components/invoice-management"
+import { InvoiceManagement } from "@/components/invoice-management";
 
-interface InvoicePageProps {
-  params: {
-    id: string
-  }
-}
-
-export default function InvoicePage({ params }: InvoicePageProps) {
-  return <InvoiceManagement roomId={params.id} />
+export default function InvoicePage({
+  params,
+}: {
+  params: { id: string };
+}) {
+  return <InvoiceManagement roomId={params.id} />;
 }

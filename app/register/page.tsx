@@ -1,44 +1,39 @@
+import Image from "next/image"
 import { RegisterForm } from "@/components/register-form"
 
 export default function RegisterPage() {
   return (
-    <div className="min-h-screen flex">
-      {/* Left side - Visual */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-900 via-blue-800 to-blue-950 items-center justify-center p-12 relative overflow-hidden">
-        {/* Subtle grid pattern texture */}
-        <div className="absolute inset-0 opacity-10">
-          <div
-            className="absolute inset-0"
-            style={{
-              backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
-                             linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)`,
-              backgroundSize: "50px 50px",
-            }}
-          />
-        </div>
+    <main className="min-h-screen relative flex items-center">
+      {/* Background image */}
+      <div className="absolute inset-0 -z-10">
+        <Image
+          src="/BackGroundAuth.png"
+          alt="Latar belakang autentikasi CredBar"
+          fill
+          priority
+          className="object-cover"
+        />
+        <div className="absolute inset-0 bg-black/10" />
+      </div>
 
-        {/* Subtle gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-tl from-blue-600/20 via-transparent to-blue-400/10" />
-
-        {/* Content */}
-        <div className="relative z-10 text-center text-white space-y-8">
-          <div className="space-y-4">
-            <h1 className="text-5xl font-bold mb-2 font-[family-name:var(--font-poppins)] text-balance">
-              Welcome To CredBar
+      <div className="w-full max-w-7xl mx-auto px-4 py-10">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+          {/* Left hero copy */}
+          <section className="lg:col-span-7 text-white space-y-4">
+            <h1 className="text-4xl md:text-5xl font-bold text-balance font-[family-name:var(--font-poppins)]">
+              Selamat Datang di CredBar
             </h1>
-            <p className="text-xl text-blue-100 max-w-md mx-auto text-pretty">
-              Bergabunglah dengan ribuan pengguna yang sudah mempercayai CredBar
+            <p className="text-base md:text-lg text-white/90 max-w-xl text-pretty">
+              Buat akun baru dan mulai kelola keuangan dengan lebih rapi dan transparan.
             </p>
-          </div>
-        </div>
-      </div>
+          </section>
 
-      {/* Right side - Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-background">
-        <div className="w-full max-w-md">
-          <RegisterForm />
+          {/* Right glass card */}
+          <section className="lg:col-span-5">
+            <RegisterForm />
+          </section>
         </div>
       </div>
-    </div>
+    </main>
   )
 }

@@ -53,48 +53,65 @@ export function LoginForm() {
   }
 
   return (
-    <Card className="bg-card border border-border/80 shadow-xl">
+    <Card className="bg-white/10 backdrop-blur-xl border border-white/100 text-white shadow-2xl">
       <CardHeader className="text-center space-y-3">
-        <div className="inline-flex items-center gap-2 rounded-xl bg-primary text-primary-foreground px-4 py-2 shadow-sm mx-auto">
-          <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center">
-            <Image
-              src="/logo.png" // pastikan file ada di folder public
-              alt="Logo CredBar"
-              width={32}
-              height={32}
-              className="object-contain"
-            />
+        {/* brand pill */}
+        <div className="inline-flex items-center gap-2 rounded-xl bg-white/10 px-3 py-2 border border-white/20 mx-auto">
+          <div className="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center">
+            <Image src="/logo.png" alt="Logo CredBar" width={32} height={32} className="object-contain" />
           </div>
           <span className="font-bold text-xl leading-none font-[family-name:var(--font-poppins)]">CredBar</span>
         </div>
-        <CardTitle className="text-2xl font-semibold text-foreground font-[family-name:var(--font-poppins)]">
-          Selamat datang kembali
+
+        {/* title */}
+        <CardTitle className="text-2xl font-semibold font-[family-name:var(--font-poppins)]">
+          Masuk ke Akun Anda
         </CardTitle>
-        <CardDescription className="text-muted-foreground">Masuk ke akun Anda untuk melanjutkan</CardDescription>
+        <CardDescription className="text-white/80">Masuk untuk melanjutkan</CardDescription>
       </CardHeader>
 
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
           {error && (
-            <Alert variant="destructive">
-              <AlertDescription>{error}</AlertDescription>
+            <Alert
+              className="bg-[#FF6B6B]/20 border border-[#FF6B6B]/40 text-white backdrop-blur-md shadow-lg
+               flex items-center gap-2 rounded-xl transition-all duration-300"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={2}
+                stroke="#FF6B6B"
+                className="w-6 h-6 drop-shadow-[0_0_8px_rgba(255,107,107,0.7)] flex-shrink-0"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M12 5c-3.86 0-7 3.14-7 7s3.14 7 7 7 7-3.14 7-7-3.14-7-7-7z" />
+              </svg>
+              <AlertDescription className="text-white font-medium tracking-wide drop-shadow-[0_0_3px_rgba(255,255,255,0.4)]">
+                {error}
+              </AlertDescription>
             </Alert>
           )}
 
+
+
           {/* Email */}
           <div className="space-y-2">
-            <Label htmlFor="email" className="text-foreground font-medium">
+            <Label htmlFor="email" className="text-white font-medium">
               Email
             </Label>
             <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-white/70" />
               <Input
                 id="email"
                 type="email"
                 placeholder="nama@email.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="h-12 pl-10"
+                className="h-12 pl-10 bg-white/15 backdrop-blur-md text-white placeholder:text-white/60
+        border border-white/25 rounded-xl 
+        focus-visible:ring-2 focus-visible:ring-cyan-300/70 focus-visible:border-transparent 
+        transition-all duration-300 hover:bg-white/20"
                 disabled={isLoading}
               />
             </div>
@@ -102,52 +119,63 @@ export function LoginForm() {
 
           {/* Password */}
           <div className="space-y-2">
-            <Label htmlFor="password" className="text-foreground font-medium">
+            <Label htmlFor="password" className="text-white font-medium">
               Password
             </Label>
             <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-white/70" />
               <Input
                 id="password"
                 type={showPassword ? "text" : "password"}
                 placeholder="Masukkan password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="h-12 pl-10 pr-10"
+                className="h-12 pl-10 pr-10 bg-white/15 backdrop-blur-md text-white placeholder:text-white/60
+        border border-white/25 rounded-xl 
+        focus-visible:ring-2 focus-visible:ring-cyan-300/70 focus-visible:border-transparent 
+        transition-all duration-300 hover:bg-white/20"
                 disabled={isLoading}
               />
               <Button
                 type="button"
                 variant="ghost"
-                size="sm"
-                className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                size="icon"
+                className={`absolute right-3 top-1/2 -translate-y-1/2 p-0 w-8 h-8 rounded-full transition-all duration-200
+        ${isLoading
+                    ? "opacity-50 cursor-not-allowed"
+                    : "bg-transparent hover:bg-white/10 active:scale-95"
+                  }`}
                 onClick={() => setShowPassword(!showPassword)}
                 disabled={isLoading}
                 aria-label={showPassword ? "Sembunyikan password" : "Tampilkan password"}
               >
                 {showPassword ? (
-                  <EyeOff className="h-5 w-5 text-muted-foreground" />
+                  <Eye className="h-5 w-5 text-white/80" />
                 ) : (
-                  <Eye className="h-5 w-5 text-muted-foreground" />
+                  <EyeOff className="h-5 w-5 text-white/80" />
                 )}
               </Button>
             </div>
           </div>
 
+
           <div className="flex items-center justify-between">
             <label className="flex items-center gap-2 cursor-pointer">
               <input type="checkbox" className="w-4 h-4 rounded border-input text-primary focus:ring-primary" />
-              <span className="text-sm text-muted-foreground">Ingat saya</span>
+              <span className="text-sm text-white/80">Ingat saya</span>
             </label>
-            <Button variant="link" className="text-sm text-primary p-0 h-auto font-normal">
+            <Button
+              variant="link"
+              className="text-sm text-white p-0 h-auto font-normal underline decoration-white/60 hover:decoration-white"
+            >
               Lupa Password?
             </Button>
           </div>
 
           <Button
             type="submit"
-            variant="default"
-            className="w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-base"
+            variant="glass"
+            className="w-full h-12 font-semibold text-base"
             disabled={isLoading}
           >
             {isLoading ? "Memproses..." : "Login"}
@@ -155,17 +183,18 @@ export function LoginForm() {
 
           {/* Divider */}
           <div className="flex items-center gap-3">
-            <div className="h-px flex-1 bg-border" />
-            <span className="text-sm text-muted-foreground">Atau login dengan</span>
-            <div className="h-px flex-1 bg-border" />
+            <div className="h-px flex-1 bg-white/30" />
+            <span className="text-sm text-white/80">Atau login dengan</span>
+            <div className="h-px flex-1 bg-white/30" />
           </div>
 
           {/* Google Button (kept themed) */}
           <div className="mt-3">
             <Button
               type="button"
-              variant="default"
-              className="w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-sm ring-1 ring-primary/30"
+              variant="glass-outline"
+              size="lg"
+              className="w-full mt-4"
               disabled={isLoading}
               aria-label="Masuk dengan Google"
             >
@@ -189,18 +218,27 @@ export function LoginForm() {
               </svg>
               Masuk dengan Google
             </Button>
+
           </div>
         </form>
       </CardContent>
 
       <CardFooter className="justify-center">
         <div className="text-center">
-          <span className="text-sm text-muted-foreground">Belum punya akun? </span>
-          <Link href="/register" className="text-sm text-primary hover:text-primary/80 font-semibold">
+          <span className="text-sm text-white/80">Belum punya akun? </span>
+          <Link
+            href="/register"
+            className="text-sm font-semibold text-white/90 underline decoration-white/50 underline-offset-4
+        transition-all duration-300 ease-in-out
+        hover:text-white hover:decoration-white
+        hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]
+        active:scale-95"
+          >
             Daftar sekarang
           </Link>
         </div>
       </CardFooter>
+
     </Card>
   )
 }

@@ -166,3 +166,17 @@
     font-family: var(--font-poppins);
   }
 }
+
+@layer utilities {
+  .glass {
+    @apply bg-background/60 backdrop-blur-xl border border-border/50 shadow-lg;
+  }
+
+  .glass-card {
+    @apply rounded-2xl bg-background/60 backdrop-blur-xl border border-border/50 shadow-xl;
+  }
+
+  .glass-pill {
+    @apply rounded-full bg-background/60 backdrop-blur-xl border border-border/50 shadow-lg;
+  }
+}

@@ -1,15 +1,13 @@
-import { SiteHeader } from "@/components/site-header"
-import { Hero } from "@/components/marketing/hero"
-import { SocialProof } from "@/components/marketing/social-proof"
-import { Problems } from "@/components/marketing/problems"
-import { Solution } from "@/components/marketing/solution"
-import { Features } from "@/components/marketing/features"
-import { TestimonialFinalCTA } from "@/components/marketing/testimonial"
+import { Hero } from "@/components/landig-page/hero"
+import { SocialProof } from "@/components/landig-page/social-proof"
+import { Problems } from "@/components/landig-page/problems"
+import { Solution } from "@/components/landig-page/solution"
+import { Features } from "@/components/landig-page/features"
+import { TestimonialFinalCTA } from "@/components/landig-page/testimonial"
 
 export default function HomePage() {
   return (
     <main>
-      <SiteHeader />
       <Hero />
       <div className="mt-8" />
       <SocialProof />

@@ -1,9 +1,10 @@
 import { InvoiceManagement } from "@/components/invoice-management";
 
-export default function InvoicePage({
-  params,
-}: {
-  params: { id: string };
-}) {
-  return <InvoiceManagement roomId={params.id} />;
+interface InvoicePageProps {
+  params: Promise<{ id: string }>;
+}
+
+export default async function InvoicePage({ params }: InvoicePageProps) {
+  const { id } = await params;
+  return <InvoiceManagement roomId={id} />;
 }

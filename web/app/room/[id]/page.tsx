@@ -1,11 +1,12 @@
-import { RoomDetail } from "@/components/room-detail"
+import { RoomDetail } from "@/components/room-detail";
 
 interface RoomPageProps {
-  params: {
-    id: string
-  }
+  params: Promise<{
+    id: string;
+  }>;
 }
 
-export default function RoomPage({ params }: RoomPageProps) {
-  return <RoomDetail roomId={params.id} />
+export default async function RoomPage({ params }: RoomPageProps) {
+  const { id } = await params;
+  return <RoomDetail roomId={id} />;
 }

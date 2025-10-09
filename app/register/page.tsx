@@ -23,9 +23,7 @@ export default function RegisterPage() {
             <h1 className="text-4xl md:text-5xl font-bold text-balance font-[family-name:var(--font-poppins)]">
               Selamat Datang di CredBar
             </h1>
-            <p className="text-base md:text-lg text-white/90 max-w-xl text-pretty">
-              Buat akun baru dan mulai kelola keuangan dengan lebih rapi dan transparan.
-            </p>
+
           </section>
 
           {/* Right glass card */}

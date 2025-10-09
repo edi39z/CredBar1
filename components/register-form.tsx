@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client"
 
 import Image from "next/image"
@@ -117,7 +116,7 @@ export function RegisterForm() {
                   id="firstName"
                   name="firstName"
                   type="text"
-                  placeholder="John"
+                  placeholder="First Name"
                   value={formData.firstName}
                   onChange={handleChange}
                   className="h-12 pl-12 bg-white/15 border border-white/40 text-white placeholder:text-white/60 backdrop-blur-md rounded-xl focus-visible:ring-2 focus-visible:ring-cyan-300/70 focus-visible:border-transparent"
@@ -136,7 +135,7 @@ export function RegisterForm() {
                   id="lastName"
                   name="lastName"
                   type="text"
-                  placeholder="Doe"
+                  placeholder="Last Name"
                   value={formData.lastName}
                   onChange={handleChange}
                   className="h-12 pl-12 bg-white/15 border border-white/40 text-white placeholder:text-white/60 backdrop-blur-md rounded-xl focus-visible:ring-2 focus-visible:ring-cyan-300/70 focus-visible:border-transparent"
@@ -157,7 +156,7 @@ export function RegisterForm() {
                 id="email"
                 name="email"
                 type="email"
-                placeholder="nama@email.com"
+                placeholder="Email"
                 value={formData.email}
                 onChange={handleChange}
                 className="h-12 pl-12 bg-white/15 border border-white/40 text-white placeholder:text-white/60 backdrop-blur-md rounded-xl focus-visible:ring-2 focus-visible:ring-cyan-300/70 focus-visible:border-transparent"
@@ -177,7 +176,7 @@ export function RegisterForm() {
                 id="password"
                 name="password"
                 type={showPassword ? "text" : "password"}
-                placeholder="Minimal 6 karakter"
+                placeholder="Password"
                 value={formData.password}
                 onChange={handleChange}
                 className="h-12 pl-12 pr-12 bg-white/15 border border-white/40 text-white placeholder:text-white/60 backdrop-blur-md rounded-xl focus-visible:ring-2 focus-visible:ring-cyan-300/70 focus-visible:border-transparent"
@@ -245,9 +244,13 @@ export function RegisterForm() {
           <span className="text-sm text-white/80">Sudah punya akun? </span>
           <Link
             href="/"
-            className="text-sm font-semibold underline decoration-white/60 hover:decoration-white"
+            className="text-sm font-semibold text-white/90 underline decoration-white/50 underline-offset-4
+        transition-all duration-300 ease-in-out
+        hover:text-white hover:decoration-white
+        hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]
+        active:scale-95"
           >
-            Login sekarang
+            Login Sekarang
           </Link>
         </div>
       </CardFooter>

@@ -14,8 +14,11 @@ const buttonVariants = cva(
           "bg-white/15 hover:bg-white/25 text-white border border-white/30 shadow-[0_0_15px_rgba(255,255,255,0.4),inset_0_0_10px_rgba(255,255,255,0.2)] hover:shadow-[0_0_25px_rgba(255,255,255,0.6),inset_0_0_12px_rgba(255,255,255,0.3)] backdrop-blur-md active:scale-95",
         "glass-outline":
           "bg-transparent hover:bg-white/10 text-white border border-white/40 shadow-[inset_0_0_8px_rgba(255,255,255,0.4)] hover:shadow-[inset_0_0_10px_rgba(255,255,255,0.6)] backdrop-blur-sm active:scale-95",
-        ghost:
-          "bg-transparent hover:bg-white/20 text-white active:scale-95",
+        outline:
+          "bg-transparent hover:bg-white/10 text-white border border-white/40 shadow-[inset_0_0_8px_rgba(255,255,255,0.4)] hover:shadow-[inset_0_0_10px_rgba(255,255,255,0.6)] backdrop-blur-sm active:scale-95",
+        secondary:
+          "bg-transparent hover:bg-white/10 text-white border border-white/40 shadow-[inset_0_0_8px_rgba(255,255,255,0.4)] hover:shadow-[inset_0_0_10px_rgba(255,255,255,0.6)] backdrop-blur-sm active:scale-95",
+        ghost: "bg-transparent hover:bg-white/20 text-white active:scale-95",
         link: "underline text-white hover:text-white/80",
       },
       size: {
@@ -29,7 +32,7 @@ const buttonVariants = cva(
       variant: "default",
       size: "default",
     },
-  }
+  },
 )
 
 export interface ButtonProps
@@ -41,14 +44,8 @@ export interface ButtonProps
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, asChild = false, ...props }, ref) => {
     const Comp = asChild ? Slot : "button"
-    return (
-      <Comp
-        ref={ref}
-        className={cn(buttonVariants({ variant, size, className }))}
-        {...props}
-      />
-    )
-  }
+    return <Comp ref={ref} className={cn(buttonVariants({ variant, size, className }))} {...props} />
+  },
 )
 Button.displayName = "Button"
 

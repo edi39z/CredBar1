@@ -201,7 +201,7 @@ export function ImportDataForm() {
               <Button onClick={resetForm} className="flex-1">
                 Import File Lain
               </Button>
-              <Button variant="outline" className="flex-1 bg-transparent">
+              <Button variant="glass-outline" className="flex-1 bg-transparent">
                 Lihat Data Imported
               </Button>
             </div>
@@ -222,7 +222,7 @@ export function ImportDataForm() {
           <p className="text-sm text-muted-foreground mb-4">
             Download template CSV untuk memastikan format data yang benar sebelum mengupload.
           </p>
-          <Button variant="outline" onClick={downloadTemplate} className="bg-transparent">
+          <Button variant="glass-outline" onClick={downloadTemplate} className="bg-transparent">
             <Download className="mr-2 h-4 w-4" />
             Download Template
           </Button>

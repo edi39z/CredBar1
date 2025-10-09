@@ -92,7 +92,7 @@ export function RoomDetail({ roomId }: RoomDetailProps) {
             </div>
             <div className="flex items-center space-x-2">
               <Button
-                variant="outline"
+                variant="glass-outline"
                 size="sm"
                 className="border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-all bg-transparent shadow-sm"
               >

@@ -171,7 +171,7 @@ export function MembersTable() {
             className="pl-10"
           />
         </div>
-        <Button variant="outline">
+        <Button variant="glass-outline">
           <Users className="h-4 w-4 mr-2" />
           Undang Anggota
         </Button>

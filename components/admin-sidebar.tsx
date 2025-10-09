@@ -42,7 +42,7 @@ export function AdminSidebar() {
     <>
       <div className="lg:hidden fixed top-4 left-4 z-50">
         <Button
-          variant="outline"
+          variant="glass-outline"
           size="sm"
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           className="bg-card shadow-md border-primary/20"

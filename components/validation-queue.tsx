@@ -192,10 +192,10 @@ export function ValidationQueue() {
           <CardTitle className="flex items-center justify-between">
             <span>Detail Nasabah</span>
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" onClick={goToPrevious} disabled={currentIndex === 0}>
+              <Button variant="glass-outline" size="sm" onClick={goToPrevious} disabled={currentIndex === 0}>
                 <ChevronLeft className="h-4 w-4" />
               </Button>
-              <Button variant="outline" size="sm" onClick={goToNext} disabled={currentIndex === customers.length - 1}>
+              <Button variant="glass-outline" size="sm" onClick={goToNext} disabled={currentIndex === customers.length - 1}>
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </div>
@@ -295,7 +295,7 @@ export function ValidationQueue() {
 
             <Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
               <DialogTrigger asChild>
-                <Button variant="destructive" disabled={isProcessing} className="flex-1">
+                <Button variant="glass" disabled={isProcessing} className="flex-1">
                   <X className="mr-2 h-4 w-4" />
                   Tolak (Invalid)
                 </Button>
@@ -319,11 +319,11 @@ export function ValidationQueue() {
                     />
                   </div>
                   <div className="flex justify-end gap-2">
-                    <Button variant="outline" onClick={() => setShowRejectDialog(false)}>
+                    <Button variant="glass-outline" onClick={() => setShowRejectDialog(false)}>
                       Batal
                     </Button>
                     <Button
-                      variant="destructive"
+                      variant="glass"
                       onClick={handleReject}
                       disabled={!rejectionReason.trim() || isProcessing}
                     >

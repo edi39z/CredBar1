@@ -254,28 +254,28 @@ export function InvoiceManagement({ roomId }: InvoiceManagementProps) {
           </div>
           <div className="flex gap-2">
             <Button
-              variant={statusFilter === "all" ? "default" : "outline"}
+              variant={statusFilter === "all" ? "default" : "glass-outline"}
               size="sm"
               onClick={() => setStatusFilter("all")}
             >
               Semua
             </Button>
             <Button
-              variant={statusFilter === "pending" ? "default" : "outline"}
+              variant={statusFilter === "pending" ? "default" : "glass-outline"}
               size="sm"
               onClick={() => setStatusFilter("pending")}
             >
               Menunggu
             </Button>
             <Button
-              variant={statusFilter === "paid" ? "default" : "outline"}
+              variant={statusFilter === "paid" ? "default" : "glass-outline"}
               size="sm"
               onClick={() => setStatusFilter("paid")}
             >
               Dibayar
             </Button>
             <Button
-              variant={statusFilter === "overdue" ? "default" : "outline"}
+              variant={statusFilter === "overdue" ? "default" : "glass-outline"}
               size="sm"
               onClick={() => setStatusFilter("overdue")}
             >

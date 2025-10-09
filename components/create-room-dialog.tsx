@@ -147,7 +147,7 @@ export function CreateRoomDialog({ open, onOpenChange }: CreateRoomDialogProps) 
             <DialogFooter className="gap-2 pt-4 border-t-2 border-border">
               <Button
                 type="button"
-                variant="outline"
+                variant="glass-outline"
                 onClick={() => onOpenChange(false)}
                 disabled={isLoading}
                 className="border-2"

@@ -233,7 +233,7 @@ export function CreateInvoiceDialog({ open, onOpenChange }: CreateInvoiceDialogP
               <div className="flex justify-between">
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="glass-outline"
                   size="sm"
                   onClick={() =>
                     handleChange(
@@ -247,7 +247,7 @@ export function CreateInvoiceDialog({ open, onOpenChange }: CreateInvoiceDialogP
                 </Button>
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="glass-outline"
                   size="sm"
                   onClick={() => handleChange("members", [])}
                   disabled={isLoading}
@@ -313,7 +313,7 @@ export function CreateInvoiceDialog({ open, onOpenChange }: CreateInvoiceDialogP
             )}
 
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
+              <Button type="button" variant="glass-outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
                 Batal
               </Button>
               <Button

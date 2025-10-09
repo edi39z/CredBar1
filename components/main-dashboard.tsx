@@ -168,7 +168,7 @@ export function MainDashboard() {
             Buat Room Baru
           </Button>
           <Button
-            variant="outline"
+            variant="glass-outline"
             onClick={() => setShowJoinRoom(true)}
             className="flex items-center gap-2 border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-all"
           >
@@ -176,7 +176,7 @@ export function MainDashboard() {
             Gabung Room
           </Button>
           <Button
-            variant="outline"
+            variant="glass-outline"
             onClick={() => (window.location.href = "/payment-status")}
             className="flex items-center gap-2 border-2 border-secondary text-secondary hover:bg-secondary hover:text-secondary-foreground transition-all"
           >
@@ -251,7 +251,7 @@ export function MainDashboard() {
                     {room.role === "Admin" && (
                       <Button
                         size="sm"
-                        variant="outline"
+                        variant="glass-outline"
                         className="border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-all bg-transparent"
                       >
                         Kelola

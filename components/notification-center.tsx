@@ -210,7 +210,7 @@ export function NotificationCenter() {
               </div>
             </div>
             <Button
-              variant="outline"
+              variant="glass-outline"
               onClick={() => setShowSettings(true)}
               className="border-[rgb(229,231,235)] hover:bg-[rgb(243,244,246)]"
             >
@@ -246,21 +246,21 @@ export function NotificationCenter() {
               </div>
               <div className="flex gap-2">
                 <Button
-                  variant={filterType === "all" ? "default" : "outline"}
+                  variant={filterType === "all" ? "default" : "glass-outline"}
                   size="sm"
                   onClick={() => setFilterType("all")}
                 >
                   Semua
                 </Button>
                 <Button
-                  variant={filterType === "payment_due" ? "default" : "outline"}
+                  variant={filterType === "payment_due" ? "default" : "glass-outline"}
                   size="sm"
                   onClick={() => setFilterType("payment_due")}
                 >
                   Jatuh Tempo
                 </Button>
                 <Button
-                  variant={filterType === "payment_overdue" ? "default" : "outline"}
+                  variant={filterType === "payment_overdue" ? "default" : "glass-outline"}
                   size="sm"
                   onClick={() => setFilterType("payment_overdue")}
                 >
@@ -274,9 +274,8 @@ export function NotificationCenter() {
               {filteredNotifications.map((notification) => (
                 <Card
                   key={notification.id}
-                  className={`cursor-pointer transition-colors ${
-                    !notification.isRead ? "border-l-4 border-l-primary bg-primary/5" : ""
-                  }`}
+                  className={`cursor-pointer transition-colors ${!notification.isRead ? "border-l-4 border-l-primary bg-primary/5" : ""
+                    }`}
                 >
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between">

@@ -157,7 +157,7 @@ export function AdminOverview() {
             ))}
           </div>
           <Button
-            variant="outline"
+            variant="glass-outline"
             className="w-full mt-4 border-primary text-primary hover:bg-primary/10 bg-transparent"
           >
             Lihat Semua Pending

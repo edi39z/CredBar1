@@ -166,18 +166,18 @@ export function InvoiceDetailDialog({ open, onOpenChange, invoice }: InvoiceDeta
 
         <DialogFooter className="flex justify-between">
           <div className="flex gap-2">
-            <Button variant="outline" size="sm">
+            <Button variant="glass-outline" size="sm">
               <Printer className="h-4 w-4 mr-2" />
               Print
             </Button>
-            <Button variant="outline" size="sm">
+            <Button variant="glass-outline" size="sm">
               <Download className="h-4 w-4 mr-2" />
               Download PDF
             </Button>
           </div>
           <div className="flex gap-2">
             {invoice.status !== "paid" && (
-              <Button variant="outline" size="sm">
+              <Button variant="glass-outline" size="sm">
                 <Send className="h-4 w-4 mr-2" />
                 Kirim Ulang
               </Button>

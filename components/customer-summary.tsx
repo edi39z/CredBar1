@@ -154,7 +154,7 @@ export function CustomerSummary() {
         </div>
 
         <div className="mt-4 flex justify-center">
-          <Button variant="outline">Lihat Semua Nasabah</Button>
+          <Button variant="glass-outline">Lihat Semua Nasabah</Button>
         </div>
       </CardContent>
     </Card>

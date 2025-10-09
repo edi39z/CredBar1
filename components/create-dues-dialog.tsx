@@ -187,7 +187,7 @@ export function CreateDuesDialog({ open, onOpenChange }: CreateDuesDialogProps) 
             </div>
 
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
+              <Button type="button" variant="glass-outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
                 Batal
               </Button>
               <Button

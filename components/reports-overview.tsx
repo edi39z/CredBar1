@@ -91,7 +91,7 @@ export function ReportsOverview() {
                 <p className="text-muted-foreground">Analisis keuangan dan performa room</p>
               </div>
             </div>
-            <Button variant="outline">
+            <Button variant="glass-outline">
               <Download className="h-4 w-4 mr-2" />
               Export PDF
             </Button>

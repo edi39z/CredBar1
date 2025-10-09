@@ -77,7 +77,7 @@ export default function AgentDashboard() {
                       Tambah Nasabah Baru
                     </a>
                   </Button>
-                  <Button variant="outline" size="lg" className="flex-1 bg-transparent">
+                  <Button variant="glass-outline" size="lg" className="flex-1 bg-transparent">
                     <Users className="mr-2 h-5 w-5" />
                     Lihat Semua Nasabah
                   </Button>

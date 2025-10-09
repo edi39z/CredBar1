@@ -191,7 +191,7 @@ export function JoinRoomDialog({ open, onOpenChange }: JoinRoomDialogProps) {
               <p className="text-sm font-medium text-foreground mb-3">Coba kode demo:</p>
               <div className="flex gap-2 justify-center">
                 <Button
-                  variant="outline"
+                  variant="glass-outline"
                   size="sm"
                   onClick={() => setInviteCode("ABC123")}
                   disabled={isLoading}
@@ -200,7 +200,7 @@ export function JoinRoomDialog({ open, onOpenChange }: JoinRoomDialogProps) {
                   ABC123
                 </Button>
                 <Button
-                  variant="outline"
+                  variant="glass-outline"
                   size="sm"
                   onClick={() => setInviteCode("XYZ789")}
                   disabled={isLoading}
@@ -217,7 +217,7 @@ export function JoinRoomDialog({ open, onOpenChange }: JoinRoomDialogProps) {
           <DialogFooter className="gap-2 pt-4 border-t-2 border-border">
             <Button
               type="button"
-              variant="outline"
+              variant="glass-outline"
               onClick={handleClose}
               disabled={isLoading}
               className="border-2 border-border hover:bg-muted font-semibold bg-transparent"

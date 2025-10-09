@@ -152,11 +152,11 @@ export function DebtTable() {
           />
         </div>
         <div className="flex gap-2">
-          <Button variant={typeFilter === "all" ? "default" : "outline"} size="sm" onClick={() => setTypeFilter("all")}>
+          <Button variant={typeFilter === "all" ? "default" : "glass-outline"} size="sm" onClick={() => setTypeFilter("all")}>
             Semua
           </Button>
           <Button
-            variant={typeFilter === "debt" ? "default" : "outline"}
+            variant={typeFilter === "debt" ? "default" : "glass-outline"}
             size="sm"
             onClick={() => setTypeFilter("debt")}
             className="text-red-600"
@@ -164,7 +164,7 @@ export function DebtTable() {
             Hutang Saya
           </Button>
           <Button
-            variant={typeFilter === "credit" ? "default" : "outline"}
+            variant={typeFilter === "credit" ? "default" : "glass-outline"}
             size="sm"
             onClick={() => setTypeFilter("credit")}
             className="text-blue-600"

@@ -225,13 +225,12 @@ export function PaymentDialog({ open, onOpenChange, invoice }: PaymentDialogProp
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-muted-foreground">Status Pembayaran:</span>
                     <span
-                      className={`text-sm font-medium ${
-                        Number.parseInt(formData.paidAmount) >= invoice.amount
+                      className={`text-sm font-medium ${Number.parseInt(formData.paidAmount) >= invoice.amount
                           ? "text-green-600"
                           : Number.parseInt(formData.paidAmount) > 0
                             ? "text-orange-600"
                             : "text-red-600"
-                      }`}
+                        }`}
                     >
                       {Number.parseInt(formData.paidAmount) >= invoice.amount
                         ? "Lunas"
@@ -250,7 +249,7 @@ export function PaymentDialog({ open, onOpenChange, invoice }: PaymentDialogProp
               )}
 
               <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
+                <Button type="button" variant="glass-outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
                   Batal
                 </Button>
                 <Button type="submit" disabled={isLoading || !formData.paymentMethod || !formData.paidAmount}>

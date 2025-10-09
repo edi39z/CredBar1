@@ -264,7 +264,7 @@ export function AddCustomerForm() {
         </Button>
         <Button
           type="button"
-          variant="outline"
+          variant="glass-outline"
           className="flex-1 bg-transparent"
           onClick={() => {
             setFormData({

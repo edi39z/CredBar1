@@ -157,28 +157,28 @@ export function DuesTable() {
         </div>
         <div className="flex gap-2">
           <Button
-            variant={statusFilter === "all" ? "default" : "outline"}
+            variant={statusFilter === "all" ? "default" : "glass-outline"}
             size="sm"
             onClick={() => setStatusFilter("all")}
           >
             Semua
           </Button>
           <Button
-            variant={statusFilter === "pending" ? "default" : "outline"}
+            variant={statusFilter === "pending" ? "default" : "glass-outline"}
             size="sm"
             onClick={() => setStatusFilter("pending")}
           >
             Belum Dibayar
           </Button>
           <Button
-            variant={statusFilter === "partial" ? "default" : "outline"}
+            variant={statusFilter === "partial" ? "default" : "glass-outline"}
             size="sm"
             onClick={() => setStatusFilter("partial")}
           >
             Sebagian
           </Button>
           <Button
-            variant={statusFilter === "paid" ? "default" : "outline"}
+            variant={statusFilter === "paid" ? "default" : "glass-outline"}
             size="sm"
             onClick={() => setStatusFilter("paid")}
           >

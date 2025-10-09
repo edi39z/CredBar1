@@ -250,7 +250,7 @@ export function ReminderSettingsDialog({ open, onOpenChange }: ReminderSettingsD
             <DialogFooter className="gap-2 pt-4 border-t-2 border-border">
               <Button
                 type="button"
-                variant="outline"
+                variant="glass-outline"
                 onClick={() => onOpenChange(false)}
                 disabled={isLoading}
                 className="border-2 border-border hover:bg-muted font-semibold"

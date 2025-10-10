@@ -11,7 +11,7 @@ const buttonVariants = cva(
         default:
           "bg-white/20 hover:bg-white/30 text-white border border-white/30 backdrop-blur-lg shadow-[0_0_12px_rgba(255,255,255,0.3)] hover:shadow-[0_0_20px_rgba(255,255,255,0.5)] active:scale-95",
         glass:
-          "bg-white/15 hover:bg-white/25 text-white border border-white/30 shadow-[0_0_15px_rgba(255,255,255,0.4),inset_0_0_10px_rgba(255,255,255,0.2)] hover:shadow-[0_0_25px_rgba(255,255,255,0.6),inset_0_0_12px_rgba(255,255,255,0.3)] backdrop-blur-md active:scale-95",
+          "bg-white/20 hover:bg-white/25 border-none shadow-[0_6px_20px_rgba(0,0,0,0.10)] hover:shadow-[0_10px_28px_rgba(0,0,0,0.16)] backdrop-blur-md active:scale-95",
         "glass-outline":
           "bg-transparent hover:bg-white/10 text-white border border-white/40 shadow-[inset_0_0_8px_rgba(255,255,255,0.4)] hover:shadow-[inset_0_0_10px_rgba(255,255,255,0.6)] backdrop-blur-sm active:scale-95",
         outline:

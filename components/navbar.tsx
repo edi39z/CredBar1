@@ -7,49 +7,63 @@ import { Button } from "@/components/ui/button"
 export function Navbar() {
     return (
         <header className="sticky top-4 z-50">
-            {/* Glass navbar without outline/border; stronger drop shadow for glass feel */}
+            {/* 🌫️ Glass Navbar putih elegan */}
             <nav
-                className="mx-auto w-[92%] max-w-7xl rounded-[28px] bg-white/65 backdrop-blur-xl
-                   shadow-[0_8px_40px_rgba(0,0,0,0.08)]"
+                className="mx-auto w-[92%] max-w-7xl rounded-[24px]
+                bg-white/20 backdrop-blur-xl 
+                shadow-[0_8px_40px_rgba(0,0,0,0.08)]
+                transition-all duration-500 ease-in-out"
                 aria-label="Navigasi utama"
             >
-                <div className="flex items-center justify-between px-4 py-3 md:px-6 md:py-4">
+                <div className="flex items-center justify-between px-5 py-3 md:px-8 md:py-4">
                     {/* Brand */}
-                    <Link href="/" className="inline-flex items-center gap-3" aria-label="CredBar - Beranda">
+                    <Link href="/" className="inline-flex items-center gap-2" aria-label="CredBar - Beranda">
                         <div className="relative h-8 w-8 md:h-9 md:w-9">
                             <Image src="/logo.png" alt="Logo CredBar" fill className="object-contain" />
                         </div>
-                        <span className="font-[family-name:var(--font-poppins)] text-lg md:text-xl font-bold text-foreground">
+                        <span className="font-[family-name:var(--font-poppins)] text-lg md:text-xl font-bold text-[#2A8757] drop-shadow-sm">
                             CredBar
                         </span>
                     </Link>
 
-                    {/* Nav center */}
+                    {/* Menu Navigasi */}
                     <ul className="hidden md:flex items-center gap-8">
-                        <li>
-                            <Link href="/" className="font-semibold text-foreground hover:text-foreground/70 transition-colors">
-                                Beranda
-                            </Link>
-                        </li>
-                        <li>
-                            <Link href="#fitur" className="font-semibold text-foreground hover:text-foreground/70 transition-colors">
-                                Fitur
-                            </Link>
-                        </li>
-                        <li>
-                            <Link
-                                href="#tutorial"
-                                className="font-semibold text-foreground hover:text-foreground/70 transition-colors"
-                            >
-                                Tutorial
-                            </Link>
-                        </li>
+                        {["Beranda", "Fitur", "Tutorial"].map((item, i) => (
+                            <li key={i}>
+                                <Link
+                                    href={
+                                        item === "Beranda"
+                                            ? "/"
+                                            : item === "Fitur"
+                                                ? "#fitur"
+                                                : "#tutorial"
+                                    }
+                                    className="text-sm font-semibold text-gray-800/80
+                                    transition-all duration-300 ease-in-out
+                                    hover:text-[#2A8757]
+                                    hover:drop-shadow-[0_0_8px_rgba(42,135,87,0.6)]
+                                    hover:scale-[1.03]"
+                                >
+                                    {item}
+                                </Link>
+                            </li>
+                        ))}
                     </ul>
 
-                    {/* Login button */}
-                    {/* Remove outline on button; emphasize drop shadow */}
+                    {/* Tombol Login */}
                     <div className="flex items-center gap-3">
-                        <Button asChild variant="glass" className="rounded-full px-5 border-none shadow-md hover:shadow-lg">
+                        <Button
+                            asChild
+                            size="sm"
+                            className="rounded-full px-6 py-2 
+                            font-semibold text-white 
+                            bg-[#2A8757]/70 border border-white/30
+                            shadow-[0_4px_20px_rgba(0,0,0,0.1)]
+                            backdrop-blur-md transition-all duration-300
+                            hover:bg-[#2A8757]
+                            hover:shadow-[0_0_20px_rgba(42,135,87,0.5)]
+                            active:scale-95"
+                        >
                             <Link href="/login">Login</Link>
                         </Button>
                     </div>

@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unescaped-entities */
 "use client"
 
 import Image from "next/image"
@@ -7,17 +8,23 @@ import { Button } from "@/components/ui/button"
 export function Hero() {
     return (
         <section className="relative min-h-screen w-full overflow-hidden">
-            {/* Background: soft finance glow */}
+            {/* 🌈 Background dengan nuansa lembut biru-hijau */}
             <div
                 aria-hidden="true"
                 className="pointer-events-none absolute inset-0 -z-10
-                    bg-[radial-gradient(1200px_600px_at_left_top,rgba(37,99,235,0.08),transparent_60%),radial-gradient(800px_400px_at_right_bottom,rgba(16,185,129,0.10),transparent_55%)]"
+                bg-[radial-gradient(1200px_600px_at_left_top,rgba(37,99,235,0.08),transparent_60%),radial-gradient(900px_500px_at_right_bottom,rgba(16,185,129,0.12),transparent_60%)]"
             />
 
-            {/* Glass panel utama — top rounded only */}
-            <div className="relative mx-auto mt-6 w-[92%] max-w-7xl rounded-t-[124px] rounded-b-none bg-white/25 backdrop-blur-xl shadow-[0_8px_60px_rgba(0,0,0,0.08)] overflow-hidden">
+            {/* 🌟 Panel utama glass dengan efek glossy + fade bawah */}
+            <div className="relative mx-auto mt-6 w-[92%] max-w-7xl rounded-t-[124px] rounded-b-none overflow-hidden shadow-[0_8px_60px_rgba(0,0,0,0.08)]">
+                {/* Lapisan transparansi utama */}
+                <div className="absolute inset-0 z-0 bg-gradient-to-b from-white/45 via-white/25 to-transparent backdrop-blur-2xl" />
+
+                {/* ✨ Highlight glossy atas */}
+                <div className="absolute top-0 left-0 w-full h-[120px] bg-gradient-to-b from-white/70 via-white/30 to-transparent opacity-70 blur-xl pointer-events-none" />
+
                 {/* Konten utama */}
-                <div className="relative grid grid-cols-1 lg:grid-cols-2 gap-10 px-6 py-16 md:px-12 md:py-24">
+                <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-10 px-6 py-16 md:px-12 md:py-24">
                     {/* Left: Text content */}
                     <div className="flex flex-col justify-center gap-6 text-center lg:text-left">
                         <h1 className="text-pretty font-[family-name:var(--font-poppins)] text-4xl md:text-5xl lg:text-6xl font-extrabold text-foreground">
@@ -29,7 +36,7 @@ export function Hero() {
                             Lupakan drama menagih manual, semua tercatat dan diingatkan otomatis."
                         </p>
 
-                        {/* Buttons — glass look */}
+                        {/* Tombol dengan efek glass */}
                         <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 pt-2">
                             <Button
                                 asChild
@@ -55,15 +62,15 @@ export function Hero() {
                         </div>
                     </div>
 
-                    {/* Placeholder kanan untuk layout seimbang */}
+                    {/* Placeholder kanan agar seimbang */}
                     <div aria-hidden className="hidden lg:block" />
                 </div>
 
-                {/* Efek gradasi lembut di bawah panel */}
-                <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-b from-transparent via-white/30 to-white/70 pointer-events-none" />
+                {/* 🌤 Fade lembut ke background bawah */}
+                <div className="absolute bottom-0 left-0 w-full h-64 bg-gradient-to-b from-transparent via-white/10 to-transparent backdrop-blur-md pointer-events-none" />
             </div>
 
-            {/* Hero image di pojok kanan bawah */}
+            {/* 📱 Hero image di pojok kanan bawah */}
             <div
                 aria-hidden="true"
                 className="pointer-events-none absolute bottom-0 right-0 z-10 translate-x-6 sm:translate-x-12 translate-y-8 sm:translate-y-12"

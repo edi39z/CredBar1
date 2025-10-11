@@ -9,7 +9,6 @@ import Navbar from "@/components/navbar"
 export default function HomePage() {
   return (
     <main className="relative overflow-x-clip bg-[#F9FAFB]">
-      {/* Simple elegant background for the whole landing page */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 -z-60

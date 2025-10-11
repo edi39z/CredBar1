@@ -7,8 +7,8 @@ import { Button } from "@/components/ui/button"
 
 export function Hero() {
     return (
-        <section className="relative min-h-screen w-full overflow-hidden bg-background">
-            {/* 🌈 Background dengan nuansa bold biru-hijau-ungu tanpa tekstur */}
+        <section className="relative min-h-screen w-full overflow-hidden bg-background pt-[100px]">
+
             <div aria-hidden="true" className="absolute inset-0 -z-10">
                 <div className="relative h-full w-full">
                     <Image src="/bg.png" alt="" fill priority sizes="100vw" className="select-none object-cover object-center" />
@@ -26,16 +26,16 @@ export function Hero() {
             <div className="relative z-10 mx-auto w-[92%] max-w-7xl">
                 {/* Transparent container, no overlay */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 px-6 py-16 md:px-12 md:py-24">
-                    {/* Left: Text content */}
+
                     <div className="flex flex-col justify-center gap-6 text-center lg:text-left">
-                        {/* 🌟 add subtle gradient accent to part of the heading for more impact */}
+
                         <h1 className="text-pretty font-[family-name:var(--font-poppins)] text-4xl md:text-5xl lg:text-6xl font-extrabold text-foreground">
                             <i>
                                 Keuangan Bareng, Jadi{" "}
                                 <span className="bg-gradient-to-r from-[#3A86FF] via-[#8B5CF6] to-[#A7F3D0] bg-clip-text text-transparent">
-                                    Gampang
+                                    #GampangAntiRibet!{" "}
                                 </span>
-                                . Bye-Bye Ribet!
+                                Bye Ribet!
                             </i>
                         </h1>
 
@@ -74,17 +74,30 @@ export function Hero() {
                     <div aria-hidden className="hidden lg:block" />
                 </div>
             </div>
-
+            {/* kelompok */}
+            {/* <div
+                aria-hidden="true"
+                className="pointer-events-none absolute bottom-0 right-80 z-20 translate-x-6 sm:translate-x-1 translate-y-8 sm:translate-y-5"
+            >
+                <Image
+                    src="/kelompok.png"
+                    alt="kerja kelompok"
+                    width={300}
+                    height={300}
+                    priority
+                    className="select-none object-contain drop-shadow-[0_36px_70px_rgba(0,0,0,0.35)]"
+                />
+            </div> */}
             {/* 📱 Hero image di pojok kanan bawah */}
             <div
                 aria-hidden="true"
-                className="pointer-events-none absolute bottom-0 right-0 z-20 translate-x-6 sm:translate-x-12 translate-y-8 sm:translate-y-12"
+                className="pointer-events-none absolute bottom-0 right-0 z-20 translate-x-6 sm:translate-x-1 translate-y-8 sm:translate-y-12"
             >
                 <Image
-                    src="/hero.png"
+                    src="/ee.png"
                     alt="Tampilan aplikasi CredBar pada ponsel"
-                    width={720}
-                    height={720}
+                    width={450}
+                    height={450}
                     priority
                     className="select-none object-contain drop-shadow-[0_36px_70px_rgba(0,0,0,0.35)]"
                 />
@@ -92,3 +105,4 @@ export function Hero() {
         </section>
     )
 }
+    

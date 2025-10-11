@@ -10,8 +10,8 @@ export function Navbar() {
             {/* 🌫️ Glass Navbar putih elegan */}
             <nav
                 className="mx-auto w-[92%] max-w-7xl rounded-[24px]
-                bg-white/20 backdrop-blur-xl 
-                shadow-[0_8px_40px_rgba(0,0,0,0.08)]
+                bg-white/25 backdrop-blur-2xl backdrop-saturate-200
+                border border-white/30 shadow-[0_6px_24px_rgba(0,0,0,0.06)]
                 transition-all duration-500 ease-in-out"
                 aria-label="Navigasi utama"
             >
@@ -31,13 +31,7 @@ export function Navbar() {
                         {["Beranda", "Fitur", "Tutorial"].map((item, i) => (
                             <li key={i}>
                                 <Link
-                                    href={
-                                        item === "Beranda"
-                                            ? "/"
-                                            : item === "Fitur"
-                                                ? "#fitur"
-                                                : "#tutorial"
-                                    }
+                                    href={item === "Beranda" ? "/" : item === "Fitur" ? "#fitur" : "#tutorial"}
                                     className="text-sm font-semibold text-gray-800/80
                                     transition-all duration-300 ease-in-out
                                     hover:text-[#2A8757]

@@ -8,12 +8,12 @@ import Navbar from "@/components/navbar"
 
 export default function HomePage() {
   return (
-    <main className="relative overflow-x-clip">
+    <main className="relative overflow-x-clip bg-[#F9FAFB]">
       {/* Simple elegant background for the whole landing page */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 -z-10
-                   bg-[radial-gradient(900px_450px_at_10%_0%,rgba(37,99,235,0.06),transparent_55%),radial-gradient(900px_450px_at_90%_100%,rgba(16,185,129,0.07),transparent_55%),repeating-linear-gradient(135deg,rgba(0,0,0,0.03)_0px,rgba(0,0,0,0.03)_1px,transparent_1px,transparent_14px)]"
+        className="pointer-events-none absolute inset-0 -z-60
+                   bg-[radial-gradient(1200px_600px_at_15%_-10%,rgba(58,134,255,0.20),transparent_60%),radial-gradient(1200px_600px_at_85%_110%,rgba(167,243,208,0.18),transparent_60%),radial-gradient(1000px_520px_at_90%_0%,rgba(139,92,246,0.16),transparent_60%)]"
       />
       <Navbar />
       <Hero />

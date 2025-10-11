@@ -6,7 +6,8 @@
 :root {
   /* Updated theme to match CredBar color scheme */
   /* Navy Blue (#1E3A8A) as primary */
-  --background: 243 244 246;
+  --background: 249 250 251;
+  /* Soft White (#F9FAFB) */
   /* Cool Gray #F3F4F6 */
   --foreground: 55 65 81;
   /* Charcoal Gray #374151 */
@@ -14,7 +15,8 @@
   --card-foreground: 55 65 81;
   --popover: 255 255 255;
   --popover-foreground: 55 65 81;
-  --primary: 37 99 235;
+  --primary: 58 134 255;
+  /* Ocean Blue (#3A86FF) */
   /* Blue #2563eb */
   --primary-foreground: 255 255 255;
   --secondary: 59 130 246;
@@ -22,9 +24,9 @@
   --secondary-foreground: 255 255 255;
   --muted: 243 244 246;
   --muted-foreground: 107 114 128;
-  --accent: 16 185 129;
-  /* Emerald Green #10B981 */
-  --accent-foreground: 255 255 255;
+  --accent: 167 243 208;
+  /* Mint Green (#A7F3D0) */
+  --accent-foreground: 17 24 39;
   --destructive: 239 68 68;
   /* Red #EF4444 */
   --destructive-foreground: 255 255 255;
@@ -54,6 +56,8 @@
   /* add select surface tokens for solid white dropdown */
   --select-surface: 255 255 255;
   --select-surface-foreground: 55 65 81;
+  --brand-lavender: 139 92 246;
+  /* Lavender (#8B5CF6) */
 }
 
 .dark {
@@ -63,13 +67,15 @@
   --card-foreground: 243 244 246;
   --popover: 31 41 55;
   --popover-foreground: 243 244 246;
-  --primary: 37 99 235;
+  --primary: 58 134 255;
+  /* Ocean Blue (#3A86FF) */
   --primary-foreground: 255 255 255;
   --secondary: 30 58 138;
   --secondary-foreground: 243 244 246;
   --muted: 55 65 81;
   --muted-foreground: 156 163 175;
-  --accent: 16 185 129;
+  --accent: 167 243 208;
+  /* Mint Green (#A7F3D0) */
   --accent-foreground: 17 24 39;
   --destructive: 239 68 68;
   --destructive-foreground: 243 244 246;
@@ -87,7 +93,8 @@
   --chart-5: 30 58 138;
   --sidebar: 31 41 55;
   --sidebar-foreground: 243 244 246;
-  --sidebar-primary: 37 99 235;
+  --sidebar-primary: 58 134 255;
+  /* Ocean Blue (#3A86FF) */
   --sidebar-primary-foreground: 255 255 255;
   --sidebar-accent: 55 65 81;
   --sidebar-accent-foreground: 243 244 246;
@@ -145,6 +152,8 @@
   /* expose tokens as Tailwind color utilities */
   --color-select-surface: var(--select-surface);
   --color-select-surface-foreground: var(--select-surface-foreground);
+  --color-brand-lavender: var(--brand-lavender);
+  /* Lavender */
 }
 
 @layer base {

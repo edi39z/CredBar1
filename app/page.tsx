@@ -1,5 +1,4 @@
 import { Hero } from "@/components/landig-page/hero"
-import { SocialProof } from "@/components/landig-page/social-proof"
 import { Problems } from "@/components/landig-page/problems"
 import { Solution } from "@/components/landig-page/solution"
 import { Features } from "@/components/landig-page/features"
@@ -17,7 +16,6 @@ export default function HomePage() {
       <Navbar />
       <Hero />
       <div className="mt-8" />
-      <SocialProof />
       <Problems />
       <Solution />
       <Features />

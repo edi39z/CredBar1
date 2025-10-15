@@ -243,7 +243,7 @@ export function RegisterForm() {
         <div className="text-center">
           <span className="text-sm text-white/80">Sudah punya akun? </span>
           <Link
-            href="/"
+            href="/login"
             className="text-sm font-semibold text-white/90 underline decoration-white/50 underline-offset-4
         transition-all duration-300 ease-in-out
         hover:text-white hover:decoration-white

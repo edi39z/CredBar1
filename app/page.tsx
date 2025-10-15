@@ -2,6 +2,7 @@ import { Hero } from "@/components/landig-page/hero"
 import { Problems } from "@/components/landig-page/problems"
 import { Solution } from "@/components/landig-page/solution"
 import { Features } from "@/components/landig-page/features"
+import { SiteFooter } from "@/components/site-footer"
 import { TestimonialFinalCTA } from "@/components/landig-page/testimonial"
 import Navbar from "@/components/navbar"
 
@@ -20,6 +21,8 @@ export default function HomePage() {
       <Solution />
       <Features />
       <TestimonialFinalCTA />
+      <SiteFooter />
     </main>
+
   )
 }

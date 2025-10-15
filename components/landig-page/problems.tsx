@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import Image from "next/image"
 
 const problems = [
@@ -14,14 +13,14 @@ const problems = [
     },
     {
         accent: "purple" as const,
-        title: "Nggak Enak Nagih",
+        title: "Nggak Enak Nagih 😅",
         desc: '"Mau ngingetin teman soal utang atau iuran tapi takut merusak pertemanan. Akhirnya, pakai uang pribadi dulu."',
         image: "/orang.png",
         alt: "Wajah ragu saat memikirkan utang dan iuran",
     },
     {
         accent: "blue" as const,
-        title: "Nggak Enak Nagih",
+        title: "Ribet dan Mudah Lupa",
         desc: '"Harus selalu ingat jadwal iuran, menghitung total, dan mengecek transferan satu per satu. Melelahkan dan rawan lupa."',
         image: "/kalender.png",
         alt: "Ikon kalender dan pengingat",
@@ -31,42 +30,61 @@ const problems = [
 export function Problems() {
     return (
         <section
-            className="mx-auto max-w-7xl px-4 py-10 md:py-16"
+            className="relative mx-auto max-w-7xl px-4 py-14 md:py-20 text-center"
             style={
                 {
-                    ["--emerald"]: "16 185 129", // #10B981
-                    ["--purple"]: "139 92 246", // #8B5CF6
-                    ["--blue"]: "58 134 255", // #3A86FF
+                    ["--emerald"]: "#10B981",
+                    ["--purple"]: "#8B5CF6",
+                    ["--blue"]: "#3A86FF",
                 } as React.CSSProperties
             }
         >
-            <div className="mt-2 grid grid-cols-1 gap-6 sm:gap-8 md:grid-cols-3">
+            <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 mb-12 leading-tight">
+                Pusing ngurusin duit patungan?{" "}
+                <span className="text-emerald-500">Kami paham.</span>
+            </h2>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-10">
                 {problems.map((p) => {
-                    const colorVar =
-                        p.accent === "emerald" ? "var(--emerald)" : p.accent === "purple" ? "var(--purple)" : "var(--blue)"
-                    const archBg = `bg-[linear-gradient(180deg,_rgb(${colorVar})_0%,_rgba(${colorVar},0.85)_60%,_rgba(${colorVar},0)_100%)]`
+                    const color =
+                        p.accent === "emerald"
+                            ? "var(--emerald)"
+                            : p.accent === "purple"
+                                ? "var(--purple)"
+                                : "var(--blue)"
+
+                    const archStyle: React.CSSProperties = {
+                        background: `linear-gradient(180deg, ${color} 0%, ${color}CC 45%, white 95%)`,
+                    }
 
                     return (
                         <article
-                            key={p.title + p.image}
-                            aria-label={p.title}
-                            className="relative overflow-hidden rounded-2xl border border-border bg-background"
-                            style={{}}
+                            key={p.title}
+                            className="overflow-hidden rounded-[2rem] shadow-md bg-white transition-transform duration-300 hover:scale-[1.02]"
                         >
-                            <figure className={`${archBg} rounded-t-[2.25rem] px-6 pt-8 pb-4 min-h-48 flex items-end justify-center`}>
+                            {/* Bagian atas melengkung */}
+                            <div
+                                className="flex items-end justify-center rounded-t-[3rem] h-[360px] md:h-[400px] px-6 pb-8 pt-10"
+                                style={archStyle}
+                            >
                                 <Image
-                                    src={p.image || "/placeholder.svg"}
+                                    src={p.image}
                                     alt={p.alt}
                                     width={640}
                                     height={420}
-                                    className="h-40 w-auto object-contain drop-shadow-[0_10px_24px_rgba(2,6,23,0.25)]"
+                                    className="h-44 md:h-52 w-auto object-contain drop-shadow-[0_12px_28px_rgba(0,0,0,0.25)]"
                                     priority
                                 />
-                            </figure>
+                            </div>
 
-                            <div className="px-6 py-6">
-                                <h3 className="text-xl font-semibold tracking-tight">{p.title}</h3>
-                                <p className="mt-3 text-[15px] leading-relaxed text-foreground/80">{p.desc}</p>
+                            {/* Konten bawah */}
+                            <div className="px-6 py-8 text-center">
+                                <h3 className="text-xl md:text-2xl font-extrabold text-slate-900">
+                                    {p.title}
+                                </h3>
+                                <p className="mt-3 text-[15px] md:text-[16px] leading-relaxed text-slate-700">
+                                    {p.desc}
+                                </p>
                             </div>
                         </article>
                     )

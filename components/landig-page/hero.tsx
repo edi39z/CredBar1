@@ -123,7 +123,7 @@ export function Hero() {
                   "
                                 >
                                     <Link href="/login" aria-label="Mulai Sekarang">
-                                        Buat Grup Pertamamu (Gratis)
+                                        Buat Grup Pertamamu !
                                     </Link>
                                 </Button>
                             </div>

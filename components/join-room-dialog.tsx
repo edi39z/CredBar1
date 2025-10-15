@@ -23,24 +23,6 @@ interface JoinRoomDialogProps {
   onOpenChange: (open: boolean) => void
 }
 
-// Mock room data for invitation codes
-const mockInviteRooms = {
-  ABC123: {
-    name: "Kos Melati",
-    type: "Kos-kosan",
-    admin: "Budi Santoso",
-    members: 6,
-    description: "Kos putri di daerah kampus",
-  },
-  XYZ789: {
-    name: "Arisan RT 05",
-    type: "Arisan",
-    admin: "Ibu Sari",
-    members: 20,
-    description: "Arisan bulanan warga RT 05",
-  },
-}
-
 export function JoinRoomDialog({ open, onOpenChange }: JoinRoomDialogProps) {
   const [inviteCode, setInviteCode] = useState("")
   const [roomInfo, setRoomInfo] = useState<any>(null)
@@ -53,40 +35,62 @@ export function JoinRoomDialog({ open, onOpenChange }: JoinRoomDialogProps) {
       setError("Masukkan kode undangan")
       return
     }
-
     setIsLoading(true)
     setError("")
+    setRoomInfo(null)
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-
-    const room = mockInviteRooms[inviteCode.toUpperCase() as keyof typeof mockInviteRooms]
-    if (room) {
-      setRoomInfo(room)
-    } else {
-      setError("Kode undangan tidak valid")
+    try {
+      const res = await fetch(`/api/rooms/invite/${inviteCode.toUpperCase()}`)
+      if (!res.ok) {
+        setError("Kode undangan tidak valid")
+      } else {
+        const data = await res.json()
+        if (data.valid) {
+          setRoomInfo({
+            name: data.room.name,
+            type: data.room.type,
+            admin: data.room.adminName || "Admin",
+            members: data.room.members || 0,
+            description: data.room.description || "",
+          })
+        } else {
+          setError("Kode undangan tidak valid")
+        }
+      }
+    } catch (err: any) {
+      console.log("[v0] check invite error:", err.message)
+      setError("Terjadi kesalahan, coba lagi")
+    } finally {
+      setIsLoading(false)
     }
-
-    setIsLoading(false)
   }
 
   const handleJoinRoom = async () => {
     setIsLoading(true)
+    setError("")
+    try {
+      const res = await fetch("/api/rooms/join", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ inviteCode }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(data?.error || "Gagal bergabung")
+      setSuccess(true)
+    } catch (err: any) {
+      console.log("[v0] join room error:", err.message)
+      setError(err.message || "Terjadi kesalahan")
+    } finally {
+      setIsLoading(false)
+    }
 
-    // Simulate joining room
-    await new Promise((resolve) => setTimeout(resolve, 1500))
-
-    setSuccess(true)
-    setIsLoading(false)
-
-    // Reset after success
     setTimeout(() => {
       setInviteCode("")
       setRoomInfo(null)
       setSuccess(false)
       setError("")
       onOpenChange(false)
-    }, 2000)
+    }, 1500)
   }
 
   const handleClose = () => {

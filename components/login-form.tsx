@@ -36,14 +36,18 @@ export function LoginForm() {
     }
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      })
 
-      if (email === "admin@example.com" && password === "password") {
-        window.location.href = "/dashboard"
-      } else if (email === "user@example.com" && password === "password") {
-        window.location.href = "/dashboard"
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        setError(data?.message || "Email atau password salah")
       } else {
-        setError("Email atau password salah")
+        // cookie auth_token diset oleh server
+        window.location.href = "/dashboard"
       }
     } catch (err) {
       setError("Terjadi kesalahan saat login")
@@ -85,15 +89,17 @@ export function LoginForm() {
                 stroke="#FF6B6B"
                 className="w-6 h-6 drop-shadow-[0_0_8px_rgba(255,107,107,0.7)] flex-shrink-0"
               >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M12 5c-3.86 0-7 3.14-7 7s3.14 7 7 7 7-3.14 7-7-3.14-7-7-7z" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 9v2m0 4h.01M12 5c-3.86 0-7 3.14-7 7s3.14 7 7 7 7-3.14 7-7-3.14-7-7-7z"
+                />
               </svg>
               <AlertDescription className="text-white font-medium tracking-wide drop-shadow-[0_0_3px_rgba(255,255,255,0.4)]">
                 {error}
               </AlertDescription>
             </Alert>
           )}
-
-
 
           {/* Email */}
           <div className="space-y-2">
@@ -141,10 +147,7 @@ export function LoginForm() {
                 variant="ghost"
                 size="icon"
                 className={`absolute right-3 top-1/2 -translate-y-1/2 p-0 w-8 h-8 rounded-full transition-all duration-200
-        ${isLoading
-                    ? "opacity-50 cursor-not-allowed"
-                    : "bg-transparent hover:bg-white/10 active:scale-95"
-                  }`}
+        ${isLoading ? "opacity-50 cursor-not-allowed" : "bg-transparent hover:bg-white/10 active:scale-95"}`}
                 onClick={() => setShowPassword(!showPassword)}
                 disabled={isLoading}
                 aria-label={showPassword ? "Sembunyikan password" : "Tampilkan password"}
@@ -157,7 +160,6 @@ export function LoginForm() {
               </Button>
             </div>
           </div>
-
 
           <div className="flex items-center justify-between">
             <label className="flex items-center gap-2 cursor-pointer">
@@ -172,12 +174,7 @@ export function LoginForm() {
             </Button>
           </div>
 
-          <Button
-            type="submit"
-            variant="glass"
-            className="w-full h-12 font-semibold text-base"
-            disabled={isLoading}
-          >
+          <Button type="submit" variant="glass" className="w-full h-12 font-semibold text-base" disabled={isLoading}>
             {isLoading ? "Memproses..." : "Login"}
           </Button>
 
@@ -218,7 +215,6 @@ export function LoginForm() {
               </svg>
               Masuk dengan Google
             </Button>
-
           </div>
         </form>
       </CardContent>
@@ -238,7 +234,6 @@ export function LoginForm() {
           </Link>
         </div>
       </CardFooter>
-
     </Card>
   )
 }

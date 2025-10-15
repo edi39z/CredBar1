@@ -36,19 +36,33 @@ export function CreateRoomDialog({ open, onOpenChange }: CreateRoomDialogProps) 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
+    setSuccess(false)
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500))
-
-    setSuccess(true)
-    setIsLoading(false)
+    try {
+      const res = await fetch("/api/rooms", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        throw new Error(data?.error || "Gagal membuat room")
+      }
+      setSuccess(true)
+      // TODO: refresh data source (SWR mutate) or redirect
+    } catch (err: any) {
+      console.log("[v0] create room error:", err.message)
+      // You might show alert here
+    } finally {
+      setIsLoading(false)
+    }
 
     // Reset form after success
     setTimeout(() => {
       setFormData({ name: "", type: "", description: "", currency: "IDR" })
       setSuccess(false)
       onOpenChange(false)
-    }, 2000)
+    }, 1500)
   }
 
   const handleChange = (field: string, value: string) => {

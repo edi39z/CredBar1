@@ -7,8 +7,6 @@ import { Plus, Users, UserPlus, Receipt } from "lucide-react"
 import { CreateRoomDialog } from "@/components/create-room-dialog"
 import { JoinRoomDialog } from "@/components/join-room-dialog"
 import { DashboardHeader } from "@/components/dashboard-header"
-// charts
-import { ResponsiveContainer, AreaChart, Area, CartesianGrid, XAxis, Tooltip } from "recharts"
 
 // Mock data for rooms
 const mockRooms = [
@@ -52,65 +50,53 @@ export function MainDashboard() {
   const totalPendingPayments = mockRooms.reduce((sum, room) => sum + room.pendingPayments, 0)
   const outstandingEstimate = mockRooms.reduce((sum, r) => sum + r.pendingPayments * 250000, 0)
 
-  const miniChartData = [
-    { m: "Jan", paid: 12 },
-    { m: "Feb", paid: 14 },
-    { m: "Mar", paid: 13 },
-    { m: "Apr", paid: 16 },
-    { m: "May", paid: 18 },
-    { m: "Jun", paid: 20 },
-  ]
-
   return (
     <div className="min-h-screen bg-background">
       <DashboardHeader title="Dashboard" subtitle="Ringkasan iuran lintas room" showSearch />
 
       <div className="container mx-auto px-4 py-8">
-
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {/* KPI: Total Room (Blue) */}
-          <Card className="hover:shadow-lg transition-shadow border-2 border-primary/20 bg-primary/8">
+          {/* Total Room - Blue */}
+          <Card className="hover:shadow-lg transition-shadow bg-primary text-primary-foreground">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-primary">Total Room</CardTitle>
+              <CardTitle className="text-sm font-medium">Total Room</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-extrabold text-foreground">{mockRooms.length}</div>
-              <p className="text-xs text-muted-foreground mt-1">Room aktif</p>
+              <div className="text-3xl font-extrabold">{mockRooms.length}</div>
+              <p className="text-xs/5 opacity-90 mt-1">Room aktif</p>
             </CardContent>
           </Card>
 
-          {/* KPI: Tagihan yang Harus Dibayar (Coral/Destructive) */}
-          <Card className="hover:shadow-lg transition-shadow border-2 border-destructive/20 bg-destructive/5">
+          {/* Tagihan yang Harus Dibayar - Coral */}
+          <Card className="hover:shadow-lg transition-shadow bg-destructive text-destructive-foreground">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-destructive">Tagihan yang Harus Dibayar</CardTitle>
+              <CardTitle className="text-sm font-medium">Tagihan yang Harus Dibayar</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-extrabold text-destructive">
-                Rp {outstandingEstimate.toLocaleString("id-ID")}
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">Estimasi dari semua room</p>
+              <div className="text-3xl font-extrabold">Rp {outstandingEstimate.toLocaleString("id-ID")}</div>
+              <p className="text-xs/5 opacity-90 mt-1">Estimasi dari semua room</p>
             </CardContent>
           </Card>
 
-          {/* KPI: Pembayaran Tertunda (Violet Secondary) */}
-          <Card className="hover:shadow-lg transition-shadow border-2 border-secondary/20 bg-secondary/5">
+          {/* Pembayaran Tertunda - Violet */}
+          <Card className="hover:shadow-lg transition-shadow bg-secondary text-secondary-foreground">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-secondary">Pembayaran Tertunda</CardTitle>
+              <CardTitle className="text-sm font-medium">Pembayaran Tertunda</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-extrabold text-secondary">{totalPendingPayments}</div>
-              <p className="text-xs text-muted-foreground mt-1">Perlu ditindaklanjuti</p>
+              <div className="text-3xl font-extrabold">{totalPendingPayments}</div>
+              <p className="text-xs/5 opacity-90 mt-1">Perlu ditindaklanjuti</p>
             </CardContent>
           </Card>
 
-          {/* KPI: Status (Emerald Success) */}
-          <Card className="hover:shadow-lg transition-shadow border-2 border-success/25 bg-success/5">
+          {/* Status - Emerald */}
+          <Card className="hover:shadow-lg transition-shadow bg-success text-success-foreground">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-success">Status</CardTitle>
+              <CardTitle className="text-sm font-medium">Status</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-extrabold text-success">Aktif</div>
-              <p className="text-xs text-muted-foreground mt-1">Status akun</p>
+              <div className="text-3xl font-extrabold">Aktif</div>
+              <p className="text-xs/5 opacity-90 mt-1">Status akun</p>
             </CardContent>
           </Card>
         </div>
@@ -128,9 +114,14 @@ export function MainDashboard() {
             <Receipt className="h-4 w-4" />
             Status Pembayaran
           </Button>
+          {/* Keluar (destructive) */}
+          <Button variant="destructive" className="shadow-md" onClick={() => (window.location.href = "/login")}>
+            {/* icon kept minimal to ensure visibility; you can swap with LogOut if installed */}
+            Keluar
+          </Button>
         </div>
 
-        {/* Room cards (kept, but make accents a bit more colorful and readable) */}
+        {/* Room cards */}
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-bold text-foreground">Room Saya</h2>
@@ -189,7 +180,8 @@ export function MainDashboard() {
                   <div className="flex gap-2 pt-3">
                     <Button
                       size="sm"
-                      className="flex-1 bg-primary hover:bg-primary/90 shadow-sm hover:shadow-md transition-all"
+                      variant="primary"
+                      className="flex-1 shadow-sm hover:shadow-md transition-all"
                       onClick={() => (window.location.href = `/room/${room.id}`)}
                     >
                       Buka Room
@@ -197,7 +189,7 @@ export function MainDashboard() {
                     {room.role === "Admin" && (
                       <Button
                         size="sm"
-                        variant="glass-outline"
+                        variant="outline"
                         className="border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-all bg-transparent"
                       >
                         Kelola
@@ -211,7 +203,7 @@ export function MainDashboard() {
         </div>
       </div>
 
-      {/* Dialogs */}
+      {/* Dialogs remain unchanged */}
       <CreateRoomDialog open={showCreateRoom} onOpenChange={setShowCreateRoom} />
       <JoinRoomDialog open={showJoinRoom} onOpenChange={setShowJoinRoom} />
     </div>

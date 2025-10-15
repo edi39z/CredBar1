@@ -8,7 +8,6 @@ import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import {
-  ArrowLeft,
   Plus,
   CreditCard,
   Settings,
@@ -25,6 +24,7 @@ import { CreateDebtDialog } from "@/components/create-debt-dialog"
 import { DuesTable } from "@/components/dues-table"
 import { DebtTable } from "@/components/debt-table"
 import { MembersTable } from "@/components/members-table"
+import { DashboardHeader } from "@/components/dashboard-header"
 
 interface RoomDetailProps {
   roomId: string
@@ -65,47 +65,26 @@ export function RoomDetail({ roomId }: RoomDetailProps) {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b bg-card shadow-sm">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => (window.location.href = "/dashboard")}
-                className="hover:bg-primary/10"
-              >
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-              <div>
-                <h1 className="text-2xl font-bold text-foreground">{mockRoom.name}</h1>
-                <div className="flex items-center gap-2 mt-1">
-                  <Badge
-                    variant={mockRoom.role === "Admin" ? "default" : "secondary"}
-                    className={mockRoom.role === "Admin" ? "bg-primary shadow-sm" : "bg-secondary shadow-sm"}
-                  >
-                    {mockRoom.role}
-                  </Badge>
-                  <span className="text-sm text-muted-foreground">{mockRoom.type}</span>
-                </div>
-              </div>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Button
-                variant="glass-outline"
-                size="sm"
-                className="border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-all bg-transparent shadow-sm"
-              >
-                <UserPlus className="h-4 w-4 mr-2" />
-                Undang Anggota
-              </Button>
-              <Button variant="ghost" size="icon" className="hover:bg-primary/10">
-                <Settings className="h-5 w-5" />
-              </Button>
-            </div>
+      <DashboardHeader
+        title={mockRoom.name}
+        subtitle={mockRoom.type}
+        backHref="/dashboard"
+        rightActions={
+          <div className="flex items-center gap-2">
+            <Button
+              variant="glass-outline"
+              size="sm"
+              className="border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-all bg-transparent shadow-sm"
+            >
+              <UserPlus className="h-4 w-4 mr-2" />
+              Undang Anggota
+            </Button>
+            <Button variant="ghost" size="icon" className="hover:bg-primary/10">
+              <Settings className="h-5 w-5" />
+            </Button>
           </div>
-        </div>
-      </header>
+        }
+      />
 
       <div className="container mx-auto px-4 py-6">
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">

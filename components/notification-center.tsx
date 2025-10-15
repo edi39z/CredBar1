@@ -8,20 +8,10 @@ import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
-import {
-  ArrowLeft,
-  Bell,
-  Search,
-  Settings,
-  AlertCircle,
-  CheckCircle,
-  Clock,
-  Mail,
-  Trash2,
-  MoreHorizontal,
-} from "lucide-react"
+import { Bell, Search, AlertCircle, CheckCircle, Clock, Mail, Trash2, MoreHorizontal } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { ReminderSettingsDialog } from "@/components/reminder-settings-dialog"
+import { DashboardHeader } from "@/components/dashboard-header"
 
 // Mock notifications data
 const mockNotifications = [
@@ -138,15 +128,15 @@ export function NotificationCenter() {
   const getNotificationIcon = (type: string) => {
     switch (type) {
       case "payment_due":
-        return <Clock className="h-4 w-4 text-orange-600" />
+        return <Clock className="h-4 w-4 text-warning" />
       case "payment_received":
-        return <CheckCircle className="h-4 w-4 text-green-600" />
+        return <CheckCircle className="h-4 w-4 text-accent" />
       case "payment_overdue":
-        return <AlertCircle className="h-4 w-4 text-red-600" />
+        return <AlertCircle className="h-4 w-4 text-destructive" />
       case "new_member":
-        return <CheckCircle className="h-4 w-4 text-blue-600" />
+        return <CheckCircle className="h-4 w-4 text-primary" />
       case "reminder_sent":
-        return <Mail className="h-4 w-4 text-gray-600" />
+        return <Mail className="h-4 w-4 text-muted-foreground" />
       default:
         return <Bell className="h-4 w-4 text-muted-foreground" />
     }
@@ -155,11 +145,11 @@ export function NotificationCenter() {
   const getPriorityBadge = (priority: string) => {
     switch (priority) {
       case "high":
-        return <Badge className="bg-red-100 text-red-800 hover:bg-red-100">Tinggi</Badge>
+        return <Badge className="bg-destructive/10 text-destructive hover:bg-destructive/10">Tinggi</Badge>
       case "medium":
-        return <Badge className="bg-orange-100 text-orange-800 hover:bg-orange-100">Sedang</Badge>
+        return <Badge className="bg-warning/10 text-warning hover:bg-warning/10">Sedang</Badge>
       case "low":
-        return <Badge className="bg-gray-100 text-gray-800 hover:bg-gray-100">Rendah</Badge>
+        return <Badge className="bg-muted text-foreground/70 hover:bg-muted">Rendah</Badge>
       default:
         return null
     }
@@ -168,11 +158,11 @@ export function NotificationCenter() {
   const getReminderStatusBadge = (status: string) => {
     switch (status) {
       case "scheduled":
-        return <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">Terjadwal</Badge>
+        return <Badge className="bg-primary/10 text-primary hover:bg-primary/10">Terjadwal</Badge>
       case "sent":
-        return <Badge className="bg-green-100 text-green-800 hover:bg-green-100">Terkirim</Badge>
+        return <Badge className="bg-accent/20 text-foreground hover:bg-accent/20">Terkirim</Badge>
       case "failed":
-        return <Badge className="bg-red-100 text-red-800 hover:bg-red-100">Gagal</Badge>
+        return <Badge className="bg-destructive/10 text-destructive hover:bg-destructive/10">Gagal</Badge>
       default:
         return <Badge variant="secondary">Unknown</Badge>
     }
@@ -192,34 +182,11 @@ export function NotificationCenter() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b bg-card">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <Button variant="ghost" size="sm" onClick={() => (window.location.href = "/dashboard")}>
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-              <div>
-                <h1 className="text-2xl font-bold text-[rgb(30,58,138)] font-[family-name:var(--font-poppins)]">
-                  Notifikasi & Pengingat
-                </h1>
-                <p className="text-[rgb(107,114,128)]">
-                  {unreadCount > 0 ? `${unreadCount} notifikasi belum dibaca` : "Semua notifikasi sudah dibaca"}
-                </p>
-              </div>
-            </div>
-            <Button
-              variant="glass-outline"
-              onClick={() => setShowSettings(true)}
-              className="border-[rgb(229,231,235)] hover:bg-[rgb(243,244,246)]"
-            >
-              <Settings className="h-4 w-4 mr-2" />
-              Pengaturan
-            </Button>
-          </div>
-        </div>
-      </header>
+      <DashboardHeader
+        title="Notifikasi & Pengingat"
+        subtitle={unreadCount > 0 ? `${unreadCount} notifikasi belum dibaca` : "Semua notifikasi sudah dibaca"}
+        backHref="/dashboard"
+      />
 
       <div className="container mx-auto px-4 py-6">
         <Tabs defaultValue="notifications" className="space-y-6">

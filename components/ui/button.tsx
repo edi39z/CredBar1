@@ -15,9 +15,15 @@ const buttonVariants = cva(
         "glass-outline":
           "bg-transparent hover:bg-white/10 text-white border border-white/40 shadow-[inset_0_0_8px_rgba(255,255,255,0.4)] hover:shadow-[inset_0_0_10px_rgba(255,255,255,0.6)] backdrop-blur-sm active:scale-95",
         outline:
-          "bg-transparent hover:bg-white/10 text-white border border-white/40 shadow-[inset_0_0_8px_rgba(255,255,255,0.4)] hover:shadow-[inset_0_0_10px_rgba(255,255,255,0.6)] backdrop-blur-sm active:scale-95",
+          "border border-border bg-transparent text-foreground hover:bg-muted/50 focus-visible:ring-2 focus-visible:ring-ring/40",
         secondary:
-          "bg-transparent hover:bg-white/10 text-white border border-white/40 shadow-[inset_0_0_8px_rgba(255,255,255,0.4)] hover:shadow-[inset_0_0_10px_rgba(255,255,255,0.6)] backdrop-blur-sm active:scale-95",
+          "bg-secondary text-secondary-foreground hover:bg-secondary/90 focus-visible:ring-2 focus-visible:ring-secondary/40",
+        primary:
+          "bg-primary text-primary-foreground hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-primary/40",
+        success:
+          "bg-success text-success-foreground hover:bg-success/90 focus-visible:ring-2 focus-visible:ring-success/40",
+        destructive:
+          "bg-destructive text-destructive-foreground hover:bg-destructive/90 focus-visible:ring-2 focus-visible:ring-destructive/40",
         ghost: "bg-transparent hover:bg-white/20 text-white active:scale-95",
         link: "underline text-white hover:text-white/80",
       },

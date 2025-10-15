@@ -6,7 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import {
-  ArrowLeft,
   Search,
   Filter,
   Download,
@@ -20,6 +19,7 @@ import {
 } from "lucide-react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { DashboardHeader } from "@/components/dashboard-header"
 
 // Mock payment data
 const mockPayments = [
@@ -132,31 +132,17 @@ export default function PaymentStatusPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b bg-card shadow-sm">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => (window.location.href = "/dashboard")}
-                className="hover:bg-primary/10"
-              >
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-              <div>
-                <h1 className="text-2xl font-bold text-foreground">Status Pembayaran</h1>
-                <p className="text-sm text-muted-foreground">Pantau semua pembayaran Anda</p>
-              </div>
-            </div>
-            <Button className="bg-primary hover:bg-primary/90">
-              <Download className="h-4 w-4 mr-2" />
-              Export
-            </Button>
-          </div>
-        </div>
-      </header>
+      <DashboardHeader
+        title="Status Pembayaran"
+        subtitle="Pantau semua pembayaran Anda"
+        backHref="/dashboard"
+        rightActions={
+          <Button className="bg-primary hover:bg-primary/90">
+            <Download className="h-4 w-4 mr-2" />
+            Export
+          </Button>
+        }
+      />
 
       <div className="container mx-auto px-4 py-8">
         {/* Summary Cards */}

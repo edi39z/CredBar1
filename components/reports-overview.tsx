@@ -24,7 +24,8 @@ import {
   AreaChart,
   Area,
 } from "recharts"
-import { TrendingUp, CreditCard, DollarSign, Download, ArrowLeft, Home, AlertCircle } from "lucide-react"
+import { TrendingUp, CreditCard, DollarSign, Download, Home, AlertCircle } from "lucide-react"
+import { DashboardHeader } from "@/components/dashboard-header"
 
 const monthlyFinancialData = [
   { month: "Jan", income: 12500000, expenses: 8500000, dues: 15000000, paid: 12500000 },
@@ -78,26 +79,17 @@ export function ReportsOverview() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b bg-card">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <Button variant="ghost" size="sm" onClick={() => (window.location.href = "/dashboard")}>
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-              <div>
-                <h1 className="text-2xl font-bold text-foreground">Laporan & Analitik</h1>
-                <p className="text-muted-foreground">Analisis keuangan dan performa room</p>
-              </div>
-            </div>
-            <Button variant="glass-outline">
-              <Download className="h-4 w-4 mr-2" />
-              Export PDF
-            </Button>
-          </div>
-        </div>
-      </header>
+      <DashboardHeader
+        title="Laporan & Analitik"
+        subtitle="Analisis keuangan dan performa room"
+        backHref="/dashboard"
+        rightActions={
+          <Button variant="glass-outline">
+            <Download className="h-4 w-4 mr-2" />
+            Export PDF
+          </Button>
+        }
+      />
 
       <div className="container mx-auto px-4 py-6">
         <Tabs defaultValue="overview" className="space-y-6">

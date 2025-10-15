@@ -1,14 +1,14 @@
 "use client"
-import Image from "next/image"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Plus, Users, CreditCard, TrendingUp, Calendar, Settings, LogOut, Home, UserPlus, Receipt } from "lucide-react"
+import { Plus, Users, UserPlus, Receipt } from "lucide-react"
 import { CreateRoomDialog } from "@/components/create-room-dialog"
 import { JoinRoomDialog } from "@/components/join-room-dialog"
-import { NotificationBadge } from "@/components/notification-badge"
+import { DashboardHeader } from "@/components/dashboard-header"
+// charts
+import { ResponsiveContainer, AreaChart, Area, CartesianGrid, XAxis, Tooltip } from "recharts"
 
 // Mock data for rooms
 const mockRooms = [
@@ -50,141 +50,87 @@ export function MainDashboard() {
 
   const totalBalance = mockRooms.reduce((sum, room) => sum + room.totalDues, 0)
   const totalPendingPayments = mockRooms.reduce((sum, room) => sum + room.pendingPayments, 0)
+  const outstandingEstimate = mockRooms.reduce((sum, r) => sum + r.pendingPayments * 250000, 0)
+
+  const miniChartData = [
+    { m: "Jan", paid: 12 },
+    { m: "Feb", paid: 14 },
+    { m: "Mar", paid: 13 },
+    { m: "Apr", paid: 16 },
+    { m: "May", paid: 18 },
+    { m: "Jun", paid: 20 },
+  ]
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b bg-card shadow-sm">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center gap-3">
-                {/* Ganti icon CreditCard dengan logo kamu */}
-                <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center">
-                  <Image
-                    src="/logo.png" // pastikan file ada di folder public
-                    alt="Logo CredBar"
-                    width={32}
-                    height={32}
-                    className="object-contain"
-                  />
-                </div>
-
-                <h1 className="text-2xl font-bold text-primary">CredBar</h1>
-              </div>
-            </div>
-            <div className="flex items-center space-x-3">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => (window.location.href = "/notifications")}
-                className="relative hover:bg-primary/10"
-              >
-                <NotificationBadge />
-              </Button>
-              <Button variant="ghost" size="icon" className="hover:bg-primary/10">
-                <Settings className="h-5 w-5" />
-              </Button>
-              <Avatar
-                className="h-9 w-9 border-2 border-primary/20 cursor-pointer hover:border-primary/40 transition-colors"
-                onClick={() => (window.location.href = "/profile")}
-              >
-                <AvatarImage src="/placeholder.svg?height=36&width=36" />
-                <AvatarFallback className="bg-primary text-primary-foreground font-semibold">JD</AvatarFallback>
-              </Avatar>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => (window.location.href = "/")}
-                className="hover:bg-destructive/10 hover:text-destructive"
-              >
-                <LogOut className="h-5 w-5" />
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
+      <DashboardHeader title="Dashboard" subtitle="Ringkasan iuran lintas room" showSearch />
 
       <div className="container mx-auto px-4 py-8">
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card className="border-l-4 border-l-primary hover:shadow-lg transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Total Room</CardTitle>
-              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                <Home className="h-5 w-5 text-primary" />
-              </div>
+          {/* KPI: Total Room (Blue) */}
+          <Card className="hover:shadow-lg transition-shadow border-2 border-primary/20 bg-primary/8">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-primary">Total Room</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-foreground">{mockRooms.length}</div>
+              <div className="text-3xl font-extrabold text-foreground">{mockRooms.length}</div>
               <p className="text-xs text-muted-foreground mt-1">Room aktif</p>
             </CardContent>
           </Card>
 
-          <Card className="border-l-4 border-l-secondary hover:shadow-lg transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Total Saldo</CardTitle>
-              <div className="w-10 h-10 rounded-lg bg-secondary/10 flex items-center justify-center">
-                <CreditCard className="h-5 w-5 text-secondary" />
-              </div>
+          {/* KPI: Tagihan yang Harus Dibayar (Coral/Destructive) */}
+          <Card className="hover:shadow-lg transition-shadow border-2 border-destructive/20 bg-destructive/5">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-destructive">Tagihan yang Harus Dibayar</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-foreground">Rp {totalBalance.toLocaleString("id-ID")}</div>
-              <p className="text-xs text-muted-foreground mt-1">Dari semua room</p>
+              <div className="text-3xl font-extrabold text-destructive">
+                Rp {outstandingEstimate.toLocaleString("id-ID")}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">Estimasi dari semua room</p>
             </CardContent>
           </Card>
 
-          <Card className="border-l-4 border-l-warning hover:shadow-lg transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Pembayaran Tertunda</CardTitle>
-              <div className="w-10 h-10 rounded-lg bg-warning/10 flex items-center justify-center">
-                <Calendar className="h-5 w-5 text-warning" />
-              </div>
+          {/* KPI: Pembayaran Tertunda (Violet Secondary) */}
+          <Card className="hover:shadow-lg transition-shadow border-2 border-secondary/20 bg-secondary/5">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-secondary">Pembayaran Tertunda</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-warning">{totalPendingPayments}</div>
+              <div className="text-3xl font-extrabold text-secondary">{totalPendingPayments}</div>
               <p className="text-xs text-muted-foreground mt-1">Perlu ditindaklanjuti</p>
             </CardContent>
           </Card>
 
-          <Card className="border-l-4 border-l-accent hover:shadow-lg transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Aktivitas</CardTitle>
-              <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center">
-                <TrendingUp className="h-5 w-5 text-accent" />
-              </div>
+          {/* KPI: Status (Emerald Success) */}
+          <Card className="hover:shadow-lg transition-shadow border-2 border-success/25 bg-success/5">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-success">Status</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-accent">Aktif</div>
+              <div className="text-3xl font-extrabold text-success">Aktif</div>
               <p className="text-xs text-muted-foreground mt-1">Status akun</p>
             </CardContent>
           </Card>
         </div>
 
-        <div className="flex flex-wrap gap-4 mb-8">
-          <Button
-            onClick={() => setShowCreateRoom(true)}
-            className="flex items-center gap-2 bg-primary hover:bg-primary/90 shadow-md hover:shadow-lg transition-all"
-          >
+        <div className="flex flex-wrap gap-3 mb-8">
+          <Button variant="primary" onClick={() => setShowCreateRoom(true)} className="shadow-md">
             <Plus className="h-4 w-4" />
             Buat Room Baru
           </Button>
-          <Button
-            variant="glass-outline"
-            onClick={() => setShowJoinRoom(true)}
-            className="flex items-center gap-2 border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-all"
-          >
+          <Button variant="secondary" onClick={() => setShowJoinRoom(true)} className="shadow-md">
             <UserPlus className="h-4 w-4" />
             Gabung Room
           </Button>
-          <Button
-            variant="glass-outline"
-            onClick={() => (window.location.href = "/payment-status")}
-            className="flex items-center gap-2 border-2 border-secondary text-secondary hover:bg-secondary hover:text-secondary-foreground transition-all"
-          >
+          <Button variant="success" onClick={() => (window.location.href = "/payment-status")} className="shadow-md">
             <Receipt className="h-4 w-4" />
             Status Pembayaran
           </Button>
         </div>
 
+        {/* Room cards (kept, but make accents a bit more colorful and readable) */}
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-bold text-foreground">Room Saya</h2>

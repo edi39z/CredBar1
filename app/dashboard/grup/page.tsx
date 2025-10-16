@@ -393,8 +393,8 @@ export default function GrupPage() {
                                 {/* Card Header with Color */}
                                 <div
                                     className={`h-3 ${grup.status === "aktif"
-                                        ? "bg-gradient-to-r from-blue-500 to-purple-500"
-                                        : "bg-gradient-to-r from-gray-400 to-gray-500"
+                                            ? "bg-gradient-to-r from-blue-500 to-purple-500"
+                                            : "bg-gradient-to-r from-gray-400 to-gray-500"
                                         }`}
                                 />
 

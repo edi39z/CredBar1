@@ -16,6 +16,7 @@ import {
     MessageSquare,
     FileText,
     Crown,
+    Mail,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -165,7 +166,12 @@ export default function GrupDetailPage() {
     const [selectedIuran, setSelectedIuran] = useState<Iuran | null>(null)
     const [showIuranModal, setShowIuranModal] = useState(false)
     const [showPaymentModal, setShowPaymentModal] = useState(false)
+    const [showInviteModal, setShowInviteModal] = useState(false) // Added state for invite modal
     const [selectedMember, setSelectedMember] = useState<IuranMember | null>(null)
+
+    const [inviteForm, setInviteForm] = useState({
+        identifier: "", // username or email
+    })
 
     const [iuranForm, setIuranForm] = useState({
         judul: "",
@@ -273,6 +279,34 @@ export default function GrupDetailPage() {
             ...grup,
             iurans: grup.iurans.map((i) => (i.id === selectedIuran.id ? updatedIuran : i)),
         })
+    }
+
+    const handleInviteMember = (e: React.FormEvent) => {
+        e.preventDefault()
+        if (!inviteForm.identifier.trim()) return
+
+        // Check if member already exists
+        const memberExists = grup?.members.some(
+            (m) => m.email === inviteForm.identifier || m.nama.toLowerCase().includes(inviteForm.identifier.toLowerCase()),
+        )
+
+        if (memberExists) {
+            alert("Anggota sudah ada di grup ini")
+            return
+        }
+
+        // Create new member
+        const newMember: Member = {
+            id: `m${Date.now()}`,
+            nama: inviteForm.identifier,
+            email: inviteForm.identifier.includes("@") ? inviteForm.identifier : `${inviteForm.identifier}@example.com`,
+            role: "member",
+        }
+
+        setGrup({ ...grup!, members: [...grup!.members, newMember] })
+        setShowInviteModal(false)
+        setInviteForm({ identifier: "" })
+        alert("Anggota berhasil diundang!")
     }
 
     const handlePayment = (e: React.FormEvent) => {
@@ -425,14 +459,14 @@ export default function GrupDetailPage() {
                     <button
                         onClick={() => setActiveTab("overview")}
                         className={`px-4 py-3 font-semibold transition-colors ${activeTab === "overview"
-                                ? "text-blue-600 border-b-2 border-blue-600"
-                                : "text-gray-600 hover:text-gray-900"
+                            ? "text-blue-600 border-b-2 border-blue-600"
+                            : "text-gray-600 hover:text-gray-900"
                             }`}
                     >
                         Overview
                     </button>
                     <button
-                        onClick={() => setActiveTab("iuran")}
+                        onClick={() => setActiveTab(IuranMember ? "iuran" : "overview")}
                         className={`px-4 py-3 font-semibold transition-colors ${activeTab === "iuran" ? "text-blue-600 border-b-2 border-blue-600" : "text-gray-600 hover:text-gray-900"
                             }`}
                     >
@@ -459,10 +493,10 @@ export default function GrupDetailPage() {
                                             <div key={activity.id} className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
                                                 <div
                                                     className={`w-3 h-3 rounded-full ${activity.status === "lunas"
-                                                            ? "bg-green-500"
-                                                            : activity.status === "menunggu_konfirmasi"
-                                                                ? "bg-yellow-500"
-                                                                : "bg-red-500"
+                                                        ? "bg-green-500"
+                                                        : activity.status === "menunggu_konfirmasi"
+                                                            ? "bg-yellow-500"
+                                                            : "bg-red-500"
                                                         }`}
                                                 />
                                                 <div className="flex-1">
@@ -547,8 +581,8 @@ export default function GrupDetailPage() {
                                                     key={iuran.id}
                                                     onClick={() => setSelectedIuran(iuran)}
                                                     className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${selectedIuran?.id === iuran.id
-                                                            ? "border-blue-500 bg-blue-50"
-                                                            : "border-gray-200 hover:border-blue-300 bg-white"
+                                                        ? "border-blue-500 bg-blue-50"
+                                                        : "border-gray-200 hover:border-blue-300 bg-white"
                                                         }`}
                                                 >
                                                     <div className="flex items-start justify-between mb-3">
@@ -749,7 +783,18 @@ export default function GrupDetailPage() {
                 {activeTab === "anggota" && (
                     <Card className="bg-white rounded-2xl shadow-lg border-0 overflow-hidden">
                         <div className="p-6 md:p-8">
-                            <h2 className="text-2xl font-bold text-gray-900 mb-6">Daftar Anggota</h2>
+                            <div className="flex items-center justify-between mb-6">
+                                <h2 className="text-2xl font-bold text-gray-900">Daftar Anggota</h2>
+                                {isAdmin && (
+                                    <Button
+                                        onClick={() => setShowInviteModal(true)}
+                                        className="bg-blue-500 hover:bg-blue-600 text-white flex items-center gap-2"
+                                    >
+                                        <Plus size={20} />
+                                        Tambah Anggota
+                                    </Button>
+                                )}
+                            </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                 {grup.members.map((member) => (
                                     <div
@@ -925,6 +970,51 @@ export default function GrupDetailPage() {
                                         </Button>
                                         <Button type="submit" className="flex-1 bg-green-500 hover:bg-green-600 text-white">
                                             Bayar Sekarang
+                                        </Button>
+                                    </div>
+                                </form>
+                            </div>
+                        </Card>
+                    </div>
+                )}
+
+                {/* Invite Member Modal */}
+                {showInviteModal && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                        <Card className="bg-white rounded-2xl shadow-2xl w-full max-w-md border-0">
+                            <div className="p-6">
+                                <h2 className="text-2xl font-bold text-gray-900 mb-2">Undang Anggota</h2>
+                                <p className="text-gray-600 mb-6">Masukkan username atau email anggota yang ingin diundang</p>
+
+                                <form onSubmit={handleInviteMember} className="space-y-4">
+                                    <div>
+                                        <label className="block text-sm font-semibold text-gray-700 mb-2">Username atau Email</label>
+                                        <div className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg focus-within:ring-2 focus-within:ring-blue-500">
+                                            <Mail size={20} className="text-gray-500" />
+                                            <Input
+                                                type="text"
+                                                placeholder="Contoh: john_doe atau john@example.com"
+                                                value={inviteForm.identifier}
+                                                onChange={(e) => setInviteForm({ identifier: e.target.value })}
+                                                required
+                                                className="flex-1 border-0 focus:outline-none focus:ring-0 px-0"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="flex gap-3 pt-4">
+                                        <Button
+                                            type="button"
+                                            onClick={() => {
+                                                setShowInviteModal(false)
+                                                setInviteForm({ identifier: "" })
+                                            }}
+                                            className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-900"
+                                        >
+                                            Batal
+                                        </Button>
+                                        <Button type="submit" className="flex-1 bg-blue-500 hover:bg-blue-600 text-white">
+                                            Undang
                                         </Button>
                                     </div>
                                 </form>

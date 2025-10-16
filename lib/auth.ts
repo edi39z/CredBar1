@@ -67,7 +67,9 @@ function httpError(message: string, status = 400) {
 }
 
 export async function requireUser() {
-    const token = cookies().get("auth_token")?.value
+    const cookieStore = await cookies()
+    const token = cookieStore.get("auth_token")?.value
+
     if (!token) {
         const e: any = new Error("Unauthorized")
         e.status = 401

@@ -35,8 +35,8 @@ export default function GrupPage() {
     const [groups, setGroups] = useState<Grup[]>([
         {
             id: "1",
-            nama: "Iuran WiFi Kos Jl. Merdeka",
-            deskripsi: "Iuran WiFi bulanan untuk kos bersama",
+            nama: "KOS BARNIBAR",
+            deskripsi: "IURAN KOS BARNIBAR",
             nominal: 50000,
             tanggalJatuhTempo: "2025-11-01",
             jumlahAnggota: 5,

@@ -16,6 +16,9 @@ import {
     MessageSquare,
     FileText,
     Crown,
+    CheckCircle,
+    Clock,
+    AlertCircle,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -166,6 +169,11 @@ export default function GrupDetailPage() {
     const [showIuranModal, setShowIuranModal] = useState(false)
     const [showPaymentModal, setShowPaymentModal] = useState(false)
     const [selectedMember, setSelectedMember] = useState<IuranMember | null>(null)
+    const [showAddMemberModal, setShowAddMemberModal] = useState(false)
+    const [newMemberForm, setNewMemberForm] = useState({
+        nama: "",
+        email: "",
+    })
 
     const [iuranForm, setIuranForm] = useState({
         judul: "",
@@ -182,6 +190,7 @@ export default function GrupDetailPage() {
     })
 
     const isAdmin = grup?.members.some((m) => m.role === "admin" && m.nama.includes("Anda"))
+    const currentUserMember = grup?.members.find((m) => m.nama.includes("Anda"))
 
     if (!grup) {
         return (
@@ -225,6 +234,49 @@ export default function GrupDetailPage() {
         )
         .sort((a, b) => new Date(b.tanggal).getTime() - new Date(a.tanggal).getTime())
         .slice(0, 5)
+
+    const getStatusColor = (status: string) => {
+        switch (status) {
+            case "lunas":
+                return "bg-green-100 text-green-700"
+            case "menunggu_konfirmasi":
+                return "bg-yellow-100 text-yellow-700"
+            case "belum_bayar":
+                return "bg-red-100 text-red-700"
+            default:
+                return "bg-gray-100 text-gray-700"
+        }
+    }
+
+    const getStatusLabel = (status: string) => {
+        switch (status) {
+            case "lunas":
+                return "Lunas"
+            case "menunggu_konfirmasi":
+                return "Menunggu Konfirmasi"
+            case "belum_bayar":
+                return "Belum Bayar"
+            default:
+                return status
+        }
+    }
+
+    const getMemberIuranStatus = () => {
+        if (!currentUserMember) return []
+        return grup.iurans.map((iuran) => {
+            const memberData = iuran.members.find((m) => m.memberId === currentUserMember.id)
+            return {
+                iuranId: iuran.id,
+                iuranJudul: iuran.judul,
+                iuranDeskripsi: iuran.deskripsi,
+                nominalTotal: iuran.nominalTotal,
+                nomorRekening: iuran.nomorRekening,
+                tanggalJatuhTempo: iuran.tanggalJatuhTempo,
+                memberData: memberData || null,
+                status: memberData?.status || "tidak_terdaftar",
+            }
+        })
+    }
 
     const handleAddIuran = (e: React.FormEvent) => {
         e.preventDefault()
@@ -333,30 +385,40 @@ export default function GrupDetailPage() {
         })
     }
 
-    const getStatusColor = (status: string) => {
-        switch (status) {
-            case "lunas":
-                return "bg-green-100 text-green-700"
-            case "menunggu_konfirmasi":
-                return "bg-yellow-100 text-yellow-700"
-            case "belum_bayar":
-                return "bg-red-100 text-red-700"
-            default:
-                return "bg-gray-100 text-gray-700"
+    const handleAddMember = (e: React.FormEvent) => {
+        e.preventDefault()
+        if (!newMemberForm.nama || !newMemberForm.email) return
+
+        const newMember: Member = {
+            id: Date.now().toString(),
+            nama: newMemberForm.nama,
+            email: newMemberForm.email,
+            role: "member",
+        }
+
+        setGrup({ ...grup, members: [...grup.members, newMember] })
+        setShowAddMemberModal(false)
+        setNewMemberForm({ nama: "", email: "" })
+    }
+
+    const handleRemoveMember = (memberId: string) => {
+        if (confirm("Hapus anggota ini dari grup?")) {
+            setGrup({
+                ...grup,
+                members: grup.members.filter((m) => m.id !== memberId),
+                iurans: grup.iurans.map((iuran) => ({
+                    ...iuran,
+                    members: iuran.members.filter((im) => im.memberId !== memberId),
+                })),
+            })
         }
     }
 
-    const getStatusLabel = (status: string) => {
-        switch (status) {
-            case "lunas":
-                return "Lunas"
-            case "menunggu_konfirmasi":
-                return "Menunggu Konfirmasi"
-            case "belum_bayar":
-                return "Belum Bayar"
-            default:
-                return status
-        }
+    const handleChangeRole = (memberId: string, newRole: "admin" | "member") => {
+        setGrup({
+            ...grup,
+            members: grup.members.map((m) => (m.id === memberId ? { ...m, role: newRole } : m)),
+        })
     }
 
     return (
@@ -386,38 +448,72 @@ export default function GrupDetailPage() {
                                     Admin
                                 </div>
                             )}
+                            {!isAdmin && (
+                                <div className="bg-purple-100 text-purple-700 px-4 py-2 rounded-full font-semibold flex items-center gap-2 w-fit">
+                                    <Users size={16} />
+                                    Member
+                                </div>
+                            )}
                         </div>
 
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <div className="bg-blue-50 rounded-lg p-4">
-                                <div className="flex items-center gap-2 mb-2">
-                                    <FileText size={16} className="text-blue-500" />
-                                    <p className="text-xs text-gray-600">Total Iuran</p>
+                        {isAdmin ? (
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <div className="bg-blue-50 rounded-lg p-4">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <FileText size={16} className="text-blue-500" />
+                                        <p className="text-xs text-gray-600">Total Iuran</p>
+                                    </div>
+                                    <p className="font-bold text-gray-900 text-lg">{totalIuran}</p>
                                 </div>
-                                <p className="font-bold text-gray-900 text-lg">{totalIuran}</p>
-                            </div>
-                            <div className="bg-green-50 rounded-lg p-4">
-                                <div className="flex items-center gap-2 mb-2">
-                                    <DollarSign size={16} className="text-green-500" />
-                                    <p className="text-xs text-gray-600">Sudah Bayar</p>
+                                <div className="bg-green-50 rounded-lg p-4">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <DollarSign size={16} className="text-green-500" />
+                                        <p className="text-xs text-gray-600">Sudah Bayar</p>
+                                    </div>
+                                    <p className="font-bold text-gray-900 text-lg">Rp {totalTerkumpul.toLocaleString("id-ID")}</p>
                                 </div>
-                                <p className="font-bold text-gray-900 text-lg">Rp {totalTerkumpul.toLocaleString("id-ID")}</p>
-                            </div>
-                            <div className="bg-red-50 rounded-lg p-4">
-                                <div className="flex items-center gap-2 mb-2">
-                                    <TrendingUp size={16} className="text-red-500" />
-                                    <p className="text-xs text-gray-600">Belum Bayar</p>
+                                <div className="bg-red-50 rounded-lg p-4">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <TrendingUp size={16} className="text-red-500" />
+                                        <p className="text-xs text-gray-600">Belum Bayar</p>
+                                    </div>
+                                    <p className="font-bold text-gray-900 text-lg">Rp {totalBelumBayar.toLocaleString("id-ID")}</p>
                                 </div>
-                                <p className="font-bold text-gray-900 text-lg">Rp {totalBelumBayar.toLocaleString("id-ID")}</p>
-                            </div>
-                            <div className="bg-purple-50 rounded-lg p-4">
-                                <div className="flex items-center gap-2 mb-2">
-                                    <Users size={16} className="text-purple-500" />
-                                    <p className="text-xs text-gray-600">Anggota</p>
+                                <div className="bg-purple-50 rounded-lg p-4">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <Users size={16} className="text-purple-500" />
+                                        <p className="text-xs text-gray-600">Anggota</p>
+                                    </div>
+                                    <p className="font-bold text-gray-900 text-lg">{grup.members.length}</p>
                                 </div>
-                                <p className="font-bold text-gray-900 text-lg">{grup.members.length}</p>
                             </div>
-                        </div>
+                        ) : (
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                <div className="bg-blue-50 rounded-lg p-4">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <Users size={16} className="text-blue-500" />
+                                        <p className="text-xs text-gray-600">Total Anggota</p>
+                                    </div>
+                                    <p className="font-bold text-gray-900 text-lg">{grup.members.length}</p>
+                                </div>
+                                <div className="bg-purple-50 rounded-lg p-4">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <FileText size={16} className="text-purple-500" />
+                                        <p className="text-xs text-gray-600">Total Iuran</p>
+                                    </div>
+                                    <p className="font-bold text-gray-900 text-lg">{totalIuran}</p>
+                                </div>
+                                <div className="bg-green-50 rounded-lg p-4">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <CheckCircle size={16} className="text-green-500" />
+                                        <p className="text-xs text-gray-600">Iuran Lunas</p>
+                                    </div>
+                                    <p className="font-bold text-gray-900 text-lg">
+                                        {getMemberIuranStatus().filter((i) => i.status === "lunas").length}
+                                    </p>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </Card>
 
@@ -448,73 +544,202 @@ export default function GrupDetailPage() {
                 </div>
 
                 {activeTab === "overview" && (
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        {/* Recent Activities */}
-                        <div className="lg:col-span-2">
-                            <Card className="bg-white rounded-2xl shadow-lg border-0 overflow-hidden">
-                                <div className="p-6 md:p-8">
-                                    <h2 className="text-2xl font-bold text-gray-900 mb-6">Aktivitas Terbaru</h2>
-                                    <div className="space-y-3">
-                                        {recentActivities.map((activity) => (
-                                            <div key={activity.id} className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
-                                                <div
-                                                    className={`w-3 h-3 rounded-full ${activity.status === "lunas"
-                                                            ? "bg-green-500"
-                                                            : activity.status === "menunggu_konfirmasi"
-                                                                ? "bg-yellow-500"
-                                                                : "bg-red-500"
-                                                        }`}
-                                                />
-                                                <div className="flex-1">
-                                                    <p className="font-semibold text-gray-900">{activity.nama}</p>
-                                                    <p className="text-sm text-gray-600">{activity.iuran}</p>
-                                                </div>
-                                                <div className="text-right">
-                                                    <p className="font-bold text-gray-900">Rp {activity.nominal.toLocaleString("id-ID")}</p>
-                                                    <p className="text-xs text-gray-600">
-                                                        {new Date(activity.tanggal).toLocaleDateString("id-ID")}
-                                                    </p>
-                                                </div>
+                    <>
+                        {isAdmin ? (
+                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                {/* Recent Activities */}
+                                <div className="lg:col-span-2">
+                                    <Card className="bg-white rounded-2xl shadow-lg border-0 overflow-hidden">
+                                        <div className="p-6 md:p-8">
+                                            <h2 className="text-2xl font-bold text-gray-900 mb-6">Aktivitas Terbaru</h2>
+                                            <div className="space-y-3">
+                                                {recentActivities.map((activity) => (
+                                                    <div key={activity.id} className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
+                                                        <div
+                                                            className={`w-3 h-3 rounded-full ${activity.status === "lunas"
+                                                                    ? "bg-green-500"
+                                                                    : activity.status === "menunggu_konfirmasi"
+                                                                        ? "bg-yellow-500"
+                                                                        : "bg-red-500"
+                                                                }`}
+                                                        />
+                                                        <div className="flex-1">
+                                                            <p className="font-semibold text-gray-900">{activity.nama}</p>
+                                                            <p className="text-sm text-gray-600">{activity.iuran}</p>
+                                                        </div>
+                                                        <div className="text-right">
+                                                            <p className="font-bold text-gray-900">Rp {activity.nominal.toLocaleString("id-ID")}</p>
+                                                            <p className="text-xs text-gray-600">
+                                                                {new Date(activity.tanggal).toLocaleDateString("id-ID")}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                ))}
                                             </div>
-                                        ))}
-                                    </div>
+                                        </div>
+                                    </Card>
                                 </div>
-                            </Card>
-                        </div>
 
-                        {/* Quick Stats */}
-                        <Card className="bg-white rounded-2xl shadow-lg border-0 overflow-hidden">
-                            <div className="p-6 md:p-8">
-                                <h3 className="text-xl font-bold text-gray-900 mb-6">Ringkasan</h3>
-                                <div className="space-y-4">
-                                    <div className="bg-green-50 rounded-lg p-4">
-                                        <p className="text-xs text-gray-600 mb-1">Lunas</p>
-                                        <p className="font-bold text-green-600 text-lg">
-                                            {grup.iurans.reduce((sum, i) => sum + i.members.filter((m) => m.status === "lunas").length, 0)}
-                                        </p>
+                                {/* Quick Stats */}
+                                <Card className="bg-white rounded-2xl shadow-lg border-0 overflow-hidden">
+                                    <div className="p-6 md:p-8">
+                                        <h3 className="text-xl font-bold text-gray-900 mb-6">Ringkasan</h3>
+                                        <div className="space-y-4">
+                                            <div className="bg-green-50 rounded-lg p-4">
+                                                <p className="text-xs text-gray-600 mb-1">Lunas</p>
+                                                <p className="font-bold text-green-600 text-lg">
+                                                    {grup.iurans.reduce(
+                                                        (sum, i) => sum + i.members.filter((m) => m.status === "lunas").length,
+                                                        0,
+                                                    )}
+                                                </p>
+                                            </div>
+                                            <div className="bg-yellow-50 rounded-lg p-4">
+                                                <p className="text-xs text-gray-600 mb-1">Menunggu Konfirmasi</p>
+                                                <p className="font-bold text-yellow-600 text-lg">
+                                                    {grup.iurans.reduce(
+                                                        (sum, i) => sum + i.members.filter((m) => m.status === "menunggu_konfirmasi").length,
+                                                        0,
+                                                    )}
+                                                </p>
+                                            </div>
+                                            <div className="bg-red-50 rounded-lg p-4">
+                                                <p className="text-xs text-gray-600 mb-1">Belum Bayar</p>
+                                                <p className="font-bold text-red-600 text-lg">
+                                                    {grup.iurans.reduce(
+                                                        (sum, i) => sum + i.members.filter((m) => m.status === "belum_bayar").length,
+                                                        0,
+                                                    )}
+                                                </p>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div className="bg-yellow-50 rounded-lg p-4">
-                                        <p className="text-xs text-gray-600 mb-1">Menunggu Konfirmasi</p>
-                                        <p className="font-bold text-yellow-600 text-lg">
-                                            {grup.iurans.reduce(
-                                                (sum, i) => sum + i.members.filter((m) => m.status === "menunggu_konfirmasi").length,
-                                                0,
-                                            )}
-                                        </p>
-                                    </div>
-                                    <div className="bg-red-50 rounded-lg p-4">
-                                        <p className="text-xs text-gray-600 mb-1">Belum Bayar</p>
-                                        <p className="font-bold text-red-600 text-lg">
-                                            {grup.iurans.reduce(
-                                                (sum, i) => sum + i.members.filter((m) => m.status === "belum_bayar").length,
-                                                0,
-                                            )}
-                                        </p>
-                                    </div>
-                                </div>
+                                </Card>
                             </div>
-                        </Card>
-                    </div>
+                        ) : (
+                            <div className="space-y-6">
+                                <Card className="bg-white rounded-2xl shadow-lg border-0 overflow-hidden">
+                                    <div className="p-6 md:p-8">
+                                        <h2 className="text-2xl font-bold text-gray-900 mb-6">Status Iuran Saya</h2>
+                                        <div className="space-y-4">
+                                            {getMemberIuranStatus().map((iuran) => (
+                                                <div
+                                                    key={iuran.iuranId}
+                                                    className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+                                                >
+                                                    <div className="flex items-start justify-between mb-3">
+                                                        <div className="flex-1">
+                                                            <h3 className="font-bold text-gray-900 text-lg">{iuran.iuranJudul}</h3>
+                                                            <p className="text-sm text-gray-600">{iuran.iuranDeskripsi}</p>
+                                                        </div>
+                                                        {iuran.memberData && (
+                                                            <span
+                                                                className={`text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1 ${getStatusColor(iuran.memberData.status)}`}
+                                                            >
+                                                                {iuran.memberData.status === "lunas" && <CheckCircle size={14} />}
+                                                                {iuran.memberData.status === "menunggu_konfirmasi" && <Clock size={14} />}
+                                                                {iuran.memberData.status === "belum_bayar" && <AlertCircle size={14} />}
+                                                                {getStatusLabel(iuran.memberData.status)}
+                                                            </span>
+                                                        )}
+                                                    </div>
+
+                                                    <div className="grid grid-cols-2 gap-3 mb-4">
+                                                        <div>
+                                                            <p className="text-xs text-gray-600 mb-1">Nominal</p>
+                                                            <p className="font-bold text-gray-900">
+                                                                Rp {iuran.memberData?.nominal.toLocaleString("id-ID") || "0"}
+                                                            </p>
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-xs text-gray-600 mb-1">Jatuh Tempo</p>
+                                                            <p className="font-bold text-gray-900">
+                                                                {new Date(iuran.tanggalJatuhTempo).toLocaleDateString("id-ID", {
+                                                                    day: "numeric",
+                                                                    month: "short",
+                                                                    year: "numeric",
+                                                                })}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+
+                                                    {iuran.memberData?.tanggalBayar && (
+                                                        <div className="mb-3 p-3 bg-blue-50 rounded-lg">
+                                                            <p className="text-xs text-gray-600">Tanggal Pembayaran</p>
+                                                            <p className="font-semibold text-gray-900">
+                                                                {new Date(iuran.memberData.tanggalBayar).toLocaleDateString("id-ID")}
+                                                            </p>
+                                                        </div>
+                                                    )}
+
+                                                    {iuran.memberData?.catatan && (
+                                                        <div className="mb-3 p-3 bg-yellow-50 rounded-lg">
+                                                            <p className="text-xs text-gray-600">Catatan</p>
+                                                            <p className="text-sm text-gray-900">{iuran.memberData.catatan}</p>
+                                                        </div>
+                                                    )}
+
+                                                    <div className="flex gap-2 pt-3 border-t">
+                                                        {iuran.memberData?.status === "belum_bayar" && (
+                                                            <Button
+                                                                onClick={() => {
+                                                                    setSelectedIuran(grup.iurans.find((i) => i.id === iuran.iuranId) || null)
+                                                                    if (iuran.memberData) {
+                                                                        setSelectedMember(iuran.memberData)
+                                                                    }
+                                                                    setShowPaymentModal(true)
+                                                                }}
+                                                                className="flex-1 bg-blue-500 hover:bg-blue-600 text-white"
+                                                            >
+                                                                Bayar Sekarang
+                                                            </Button>
+                                                        )}
+                                                        {iuran.memberData?.status === "menunggu_konfirmasi" && (
+                                                            <div className="flex-1 bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-center">
+                                                                <p className="text-xs text-yellow-700 font-semibold">Menunggu Konfirmasi Admin</p>
+                                                            </div>
+                                                        )}
+                                                        {iuran.memberData?.status === "lunas" && (
+                                                            <div className="flex-1 bg-green-50 border border-green-200 rounded-lg p-3 text-center">
+                                                                <p className="text-xs text-green-700 font-semibold">✓ Sudah Lunas</p>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </Card>
+
+                                {/* Member Info Card */}
+                                <Card className="bg-white rounded-2xl shadow-lg border-0 overflow-hidden">
+                                    <div className="p-6 md:p-8">
+                                        <h3 className="text-xl font-bold text-gray-900 mb-4">Informasi Pembayaran</h3>
+                                        <div className="space-y-3">
+                                            {selectedIuran && (
+                                                <>
+                                                    <div className="bg-blue-50 rounded-lg p-4">
+                                                        <p className="text-xs text-gray-600 mb-1">Nomor Rekening</p>
+                                                        <p className="font-bold text-gray-900">{selectedIuran.nomorRekening}</p>
+                                                    </div>
+                                                    {selectedIuran.qrCode && (
+                                                        <div className="bg-gray-50 rounded-lg p-4 text-center">
+                                                            <p className="text-xs text-gray-600 mb-2">QR Code</p>
+                                                            <img
+                                                                src={selectedIuran.qrCode || "/placeholder.svg"}
+                                                                alt="QR Code"
+                                                                className="w-32 h-32 mx-auto"
+                                                            />
+                                                        </div>
+                                                    )}
+                                                </>
+                                            )}
+                                        </div>
+                                    </div>
+                                </Card>
+                            </div>
+                        )}
+                    </>
                 )}
 
                 {activeTab === "iuran" && (
@@ -749,7 +974,18 @@ export default function GrupDetailPage() {
                 {activeTab === "anggota" && (
                     <Card className="bg-white rounded-2xl shadow-lg border-0 overflow-hidden">
                         <div className="p-6 md:p-8">
-                            <h2 className="text-2xl font-bold text-gray-900 mb-6">Daftar Anggota</h2>
+                            <div className="flex items-center justify-between mb-6">
+                                <h2 className="text-2xl font-bold text-gray-900">Daftar Anggota</h2>
+                                {isAdmin && (
+                                    <Button
+                                        onClick={() => setShowAddMemberModal(true)}
+                                        className="bg-blue-500 hover:bg-blue-600 text-white flex items-center gap-2"
+                                    >
+                                        <Plus size={20} />
+                                        Tambah Anggota
+                                    </Button>
+                                )}
+                            </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                 {grup.members.map((member) => (
                                     <div
@@ -773,8 +1009,29 @@ export default function GrupDetailPage() {
                                                 <Button className="flex-1 bg-blue-500 hover:bg-blue-600 text-white text-xs py-1">
                                                     <MessageSquare size={14} />
                                                 </Button>
-                                                <Button className="flex-1 bg-purple-500 hover:bg-purple-600 text-white text-xs py-1">
-                                                    <Edit2 size={14} />
+                                                {member.role === "member" ? (
+                                                    <Button
+                                                        onClick={() => handleChangeRole(member.id, "admin")}
+                                                        className="flex-1 bg-purple-500 hover:bg-purple-600 text-white text-xs py-1"
+                                                        title="Jadikan Admin"
+                                                    >
+                                                        <Crown size={14} />
+                                                    </Button>
+                                                ) : (
+                                                    <Button
+                                                        onClick={() => handleChangeRole(member.id, "member")}
+                                                        className="flex-1 bg-gray-500 hover:bg-gray-600 text-white text-xs py-1"
+                                                        title="Jadikan Member"
+                                                    >
+                                                        <Users size={14} />
+                                                    </Button>
+                                                )}
+                                                <Button
+                                                    onClick={() => handleRemoveMember(member.id)}
+                                                    className="flex-1 bg-red-500 hover:bg-red-600 text-white text-xs py-1"
+                                                    title="Hapus Anggota"
+                                                >
+                                                    <Trash2 size={14} />
                                                 </Button>
                                             </div>
                                         )}
@@ -925,6 +1182,65 @@ export default function GrupDetailPage() {
                                         </Button>
                                         <Button type="submit" className="flex-1 bg-green-500 hover:bg-green-600 text-white">
                                             Bayar Sekarang
+                                        </Button>
+                                    </div>
+                                </form>
+                            </div>
+                        </Card>
+                    </div>
+                )}
+
+                {showAddMemberModal && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                        <Card className="bg-white rounded-2xl shadow-2xl w-full max-w-md border-0">
+                            <div className="p-6">
+                                <h2 className="text-2xl font-bold text-gray-900 mb-6">Tambah Anggota Baru</h2>
+
+                                <form onSubmit={handleAddMember} className="space-y-4">
+                                    <div>
+                                        <label className="block text-sm font-semibold text-gray-700 mb-2">Nama Anggota</label>
+                                        <Input
+                                            type="text"
+                                            placeholder="Masukkan nama anggota"
+                                            value={newMemberForm.nama}
+                                            onChange={(e) => setNewMemberForm({ ...newMemberForm, nama: e.target.value })}
+                                            required
+                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-semibold text-gray-700 mb-2">Email</label>
+                                        <Input
+                                            type="email"
+                                            placeholder="Masukkan email anggota"
+                                            value={newMemberForm.email}
+                                            onChange={(e) => setNewMemberForm({ ...newMemberForm, email: e.target.value })}
+                                            required
+                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        />
+                                    </div>
+
+                                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                                        <p className="text-xs text-blue-700">
+                                            <strong>Catatan:</strong> Anggota baru akan ditambahkan sebagai Member. Anda dapat mengubah role
+                                            mereka menjadi Admin setelah ditambahkan.
+                                        </p>
+                                    </div>
+
+                                    <div className="flex gap-3 pt-4">
+                                        <Button
+                                            type="button"
+                                            onClick={() => {
+                                                setShowAddMemberModal(false)
+                                                setNewMemberForm({ nama: "", email: "" })
+                                            }}
+                                            className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-900"
+                                        >
+                                            Batal
+                                        </Button>
+                                        <Button type="submit" className="flex-1 bg-blue-500 hover:bg-blue-600 text-white">
+                                            Tambah Anggota
                                         </Button>
                                     </div>
                                 </form>

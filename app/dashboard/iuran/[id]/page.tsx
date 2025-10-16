@@ -690,6 +690,178 @@ export default function IuranDetailPage() {
                     </div>
                 </Card>
 
+                {/* Member view section for non-admin users */}
+                {!isAdmin && (
+                    <div className="space-y-6">
+                        {/* Member Payment Detail Card */}
+                        <Card className="bg-white rounded-2xl shadow-lg border-0 overflow-hidden">
+                            <div className="p-6 md:p-8">
+                                <h2 className="text-2xl font-bold text-gray-900 mb-6">Detail Iuran Saya</h2>
+
+                                {currentIuran.members.find((m) => m.memberId === "m2") ? (
+                                    <div className="space-y-6">
+                                        {/* Status Card */}
+                                        <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6 border border-blue-200">
+                                            <div className="flex items-start justify-between mb-4">
+                                                <div>
+                                                    <p className="text-sm text-gray-600 mb-1">Status Pembayaran</p>
+                                                    <h3 className="text-2xl font-bold text-gray-900">{currentIuran.judul}</h3>
+                                                </div>
+                                                {currentIuran.members.find((m) => m.memberId === "m2") && (
+                                                    <span
+                                                        className={`text-sm font-semibold px-4 py-2 rounded-full flex items-center gap-2 ${getStatusColor(currentIuran.members.find((m) => m.memberId === "m2")?.status || "belum_bayar")}`}
+                                                    >
+                                                        {getStatusIcon(
+                                                            currentIuran.members.find((m) => m.memberId === "m2")?.status || "belum_bayar",
+                                                        )}
+                                                        {getStatusLabel(
+                                                            currentIuran.members.find((m) => m.memberId === "m2")?.status || "belum_bayar",
+                                                        )}
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <p className="text-gray-600">{currentIuran.deskripsi}</p>
+                                        </div>
+
+                                        {/* Payment Info Grid */}
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                                                <p className="text-xs text-gray-600 mb-1">Nominal Iuran</p>
+                                                <p className="text-2xl font-bold text-blue-600">
+                                                    Rp{" "}
+                                                    {(currentIuran.members.find((m) => m.memberId === "m2")?.nominal || 0).toLocaleString(
+                                                        "id-ID",
+                                                    )}
+                                                </p>
+                                            </div>
+                                            <div className="bg-purple-50 rounded-lg p-4 border border-purple-200">
+                                                <p className="text-xs text-gray-600 mb-1">Jatuh Tempo</p>
+                                                <p className="text-2xl font-bold text-purple-600">
+                                                    {new Date(currentIuran.tanggalJatuhTempo).toLocaleDateString("id-ID", {
+                                                        day: "numeric",
+                                                        month: "short",
+                                                        year: "numeric",
+                                                    })}
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        {/* Payment Method Card */}
+                                        <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
+                                            <h3 className="text-lg font-bold text-gray-900 mb-4">Metode Pembayaran</h3>
+                                            <div className="space-y-4">
+                                                <div className="bg-white rounded-lg p-4 border border-gray-200">
+                                                    <p className="text-xs text-gray-600 mb-2">Nomor Rekening</p>
+                                                    <p className="text-lg font-bold text-gray-900 font-mono">{currentIuran.nomorRekening}</p>
+                                                    <p className="text-xs text-gray-500 mt-2">Salin nomor rekening untuk transfer</p>
+                                                </div>
+
+                                                {currentIuran.qrCode && (
+                                                    <div className="bg-white rounded-lg p-4 border border-gray-200 text-center">
+                                                        <p className="text-xs text-gray-600 mb-3">QR Code Pembayaran</p>
+                                                        <img
+                                                            src={currentIuran.qrCode || "/placeholder.svg"}
+                                                            alt="QR Code"
+                                                            className="w-40 h-40 mx-auto rounded-lg"
+                                                        />
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {/* Payment History */}
+                                        {currentIuran.members.find((m) => m.memberId === "m2")?.tanggalBayar && (
+                                            <div className="bg-green-50 rounded-lg p-4 border border-green-200">
+                                                <p className="text-xs text-gray-600 mb-1">Tanggal Pembayaran</p>
+                                                <p className="text-lg font-bold text-green-600">
+                                                    {new Date(
+                                                        currentIuran.members.find((m) => m.memberId === "m2")?.tanggalBayar || "",
+                                                    ).toLocaleDateString("id-ID", {
+                                                        weekday: "long",
+                                                        year: "numeric",
+                                                        month: "long",
+                                                        day: "numeric",
+                                                    })}
+                                                </p>
+                                            </div>
+                                        )}
+
+                                        {currentIuran.members.find((m) => m.memberId === "m2")?.catatan && (
+                                            <div className="bg-yellow-50 rounded-lg p-4 border border-yellow-200">
+                                                <p className="text-xs text-gray-600 mb-1">Catatan</p>
+                                                <p className="text-gray-900">
+                                                    {currentIuran.members.find((m) => m.memberId === "m2")?.catatan}
+                                                </p>
+                                            </div>
+                                        )}
+
+                                        {/* Action Button */}
+                                        <div className="flex gap-3">
+                                            {currentIuran.members.find((m) => m.memberId === "m2")?.status === "belum_bayar" && (
+                                                <Button
+                                                    onClick={() => {
+                                                        const member = currentIuran.members.find((m) => m.memberId === "m2")
+                                                        if (member) {
+                                                            setSelectedMember(member)
+                                                            setShowPaymentModal(true)
+                                                        }
+                                                    }}
+                                                    className="flex-1 bg-green-500 hover:bg-green-600 text-white py-3 text-lg font-semibold"
+                                                >
+                                                    Bayar Sekarang
+                                                </Button>
+                                            )}
+                                            {currentIuran.members.find((m) => m.memberId === "m2")?.status === "menunggu_konfirmasi" && (
+                                                <div className="flex-1 bg-yellow-50 border-2 border-yellow-300 rounded-lg p-4 text-center">
+                                                    <p className="text-yellow-700 font-semibold">Menunggu Konfirmasi Admin</p>
+                                                    <p className="text-xs text-yellow-600 mt-1">Pembayaran Anda sedang diverifikasi</p>
+                                                </div>
+                                            )}
+                                            {currentIuran.members.find((m) => m.memberId === "m2")?.status === "lunas" && (
+                                                <div className="flex-1 bg-green-50 border-2 border-green-300 rounded-lg p-4 text-center">
+                                                    <p className="text-green-700 font-semibold flex items-center justify-center gap-2">
+                                                        <CheckCircle size={20} />
+                                                        Sudah Lunas
+                                                    </p>
+                                                    <p className="text-xs text-green-600 mt-1">Terima kasih atas pembayaran Anda</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="text-center py-8">
+                                        <AlertCircle size={48} className="mx-auto text-gray-400 mb-4" />
+                                        <p className="text-gray-600">Anda belum terdaftar dalam iuran ini</p>
+                                    </div>
+                                )}
+                            </div>
+                        </Card>
+
+                        {/* Info Card */}
+                        <Card className="bg-white rounded-2xl shadow-lg border-0 overflow-hidden">
+                            <div className="p-6 md:p-8">
+                                <h3 className="text-xl font-bold text-gray-900 mb-4">Informasi Grup</h3>
+                                <div className="space-y-3">
+                                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                        <span className="text-gray-600">Nama Grup</span>
+                                        <span className="font-semibold text-gray-900">{currentGrup.nama}</span>
+                                    </div>
+                                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                        <span className="text-gray-600">Total Anggota</span>
+                                        <span className="font-semibold text-gray-900">{currentGrup.members.length}</span>
+                                    </div>
+                                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                        <span className="text-gray-600">Total Iuran</span>
+                                        <span className="font-semibold text-gray-900">
+                                            Rp {currentIuran.nominalTotal.toLocaleString("id-ID")}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </Card>
+                    </div>
+                )}
+
                 {/* Payment Modal */}
                 {showPaymentModal && selectedMember && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">

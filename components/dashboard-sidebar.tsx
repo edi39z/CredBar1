@@ -78,27 +78,23 @@ export function DashboardSidebar() {
                 <div className="flex flex-col h-full">
                     {/* Header */}
                     <div className="flex items-center justify-center h-20 px-4 border-b border-white/20">
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center">
-                                <Image src="/logo.png" alt="CredBar" width={24} height={24} className="object-contain" />
+                        <div className="bg-white px-3 py-2 rounded-xl shadow-sm flex items-center gap-2">
+                            <div className="w-8 h-8 rounded-md  flex items-center justify-center">
+                                <Image
+                                    src="/logo.png"
+                                    alt="CredBar"
+                                    width={34}
+                                    height={34}
+                                    className="object-contain"
+                                />
                             </div>
-                            <h2 className="text-lg font-bold text-white">CredBar Iuran</h2>
+                            <h2 className="text-base font-semibold text-[#10B981]">CredBar Iuran</h2>
                         </div>
+
+
                     </div>
 
-                    {/* User Profile */}
-                    <div className="px-4 py-6 border-b border-white/20">
-                        <div className="flex items-center gap-3">
-                            <Avatar className="h-12 w-12 border-2 border-white/30">
-                                <AvatarImage src="/diverse-avatars.png" />
-                                <AvatarFallback className="bg-white/20 text-white font-bold">CM</AvatarFallback>
-                            </Avatar>
-                            <div className="min-w-0">
-                                <p className="text-sm font-semibold text-white truncate">Cathy Murray</p>
-                                <p className="text-xs text-white/70">ID:5788430</p>
-                            </div>
-                        </div>
-                    </div>
+
 
                     {/* Navigation */}
                     <nav className="flex-1 px-3 py-6 space-y-2">
@@ -133,7 +129,7 @@ export function DashboardSidebar() {
                             <LogOut className="mr-3 h-5 w-5" />
                             Logout
                         </Button>
-                        <p className="text-xs text-white/60 mt-4 text-center">© 2025 CredBar Iuran</p>
+
                     </div>
                 </div>
             </div>

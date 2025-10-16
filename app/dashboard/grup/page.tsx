@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { useState } from "react"
-import { Plus, Edit2, Trash2, Users, DollarSign, Calendar, Shield } from "lucide-react"
+import { Plus, Edit2, Trash2, Users, Calendar, Shield } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card } from "@/components/ui/card"
@@ -400,10 +400,9 @@ export default function GrupPage() {
 
                                 <div className="p-6">
                                     {/* Header dengan Role Badge */}
-                                    <div className="flex items-start justify-between mb-3">
+                                    <div className="flex items-start justify-between mb-4">
                                         <div>
                                             <h3 className="text-xl font-bold text-gray-900">{grup.nama}</h3>
-                                            <p className="text-gray-600 text-sm mt-1">{grup.deskripsi}</p>
                                         </div>
                                         {grup.role === "admin" && (
                                             <div className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
@@ -413,79 +412,37 @@ export default function GrupPage() {
                                         )}
                                     </div>
 
-                                    {/* Grup Info Grid */}
-                                    <div className="grid grid-cols-2 gap-3 mb-6">
+                                    <div className="grid grid-cols-3 gap-3 mb-6">
                                         <div className="bg-blue-50 rounded-lg p-3">
                                             <div className="flex items-center gap-2 mb-1">
-                                                <DollarSign size={16} className="text-blue-500" />
-                                                <span className="text-xs text-gray-600">Nominal</span>
+                                                <Users size={16} className="text-blue-500" />
+                                                <span className="text-xs text-gray-600">Anggota</span>
                                             </div>
-                                            <p className="font-bold text-gray-900 text-sm">Rp {grup.nominal.toLocaleString("id-ID")}</p>
+                                            <p className="font-bold text-gray-900 text-sm">{grup.jumlahAnggota}</p>
                                         </div>
 
                                         <div className="bg-green-50 rounded-lg p-3">
                                             <div className="flex items-center gap-2 mb-1">
-                                                <Users size={16} className="text-green-500" />
-                                                <span className="text-xs text-gray-600">Anggota</span>
+                                                <Shield size={16} className="text-green-500" />
+                                                <span className="text-xs text-gray-600">Status</span>
                                             </div>
-                                            <p className="font-bold text-gray-900 text-sm">{grup.jumlahAnggota} orang</p>
+                                            <p className="font-bold text-gray-900 text-sm">{grup.role === "admin" ? "Admin" : "Member"}</p>
                                         </div>
 
                                         <div className="bg-purple-50 rounded-lg p-3">
                                             <div className="flex items-center gap-2 mb-1">
                                                 <Calendar size={16} className="text-purple-500" />
-                                                <span className="text-xs text-gray-600">Jatuh Tempo</span>
+                                                <span className="text-xs text-gray-600">Hari</span>
                                             </div>
                                             <p className="font-bold text-gray-900 text-sm">
-                                                {new Date(grup.tanggalJatuhTempo).toLocaleDateString("id-ID", {
-                                                    day: "numeric",
-                                                    month: "short",
-                                                })}
+                                                {Math.max(
+                                                    0,
+                                                    Math.ceil(
+                                                        (new Date(grup.tanggalJatuhTempo).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24),
+                                                    ),
+                                                )}{" "}
+                                                hari
                                             </p>
-                                        </div>
-
-                                        <div className="bg-orange-50 rounded-lg p-3">
-                                            <div className="flex items-center gap-2 mb-1">
-                                                <DollarSign size={16} className="text-orange-500" />
-                                                <span className="text-xs text-gray-600">Terkumpul</span>
-                                            </div>
-                                            <p className="font-bold text-gray-900 text-sm">
-                                                Rp {grup.totalTerkumpul.toLocaleString("id-ID")}
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    {/* Progress Bar */}
-                                    <div className="mb-6">
-                                        <div className="flex justify-between items-center mb-2">
-                                            <span className="text-xs font-semibold text-gray-700">Progress Pembayaran</span>
-                                            <span className="text-xs font-bold text-blue-600">
-                                                {Math.round((grup.totalTerkumpul / (grup.nominal * grup.jumlahAnggota)) * 100)}%
-                                            </span>
-                                        </div>
-                                        <div className="w-full bg-gray-200 rounded-full h-2">
-                                            <div
-                                                className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full transition-all"
-                                                style={{
-                                                    width: `${Math.min((grup.totalTerkumpul / (grup.nominal * grup.jumlahAnggota)) * 100, 100)}%`,
-                                                }}
-                                            />
-                                        </div>
-                                    </div>
-
-                                    {/* Status Summary */}
-                                    <div className="grid grid-cols-3 gap-2 mb-6 text-center">
-                                        <div className="bg-green-50 rounded-lg p-2">
-                                            <p className="text-xs text-gray-600">Lunas</p>
-                                            <p className="font-bold text-green-600">{lunas}</p>
-                                        </div>
-                                        <div className="bg-yellow-50 rounded-lg p-2">
-                                            <p className="text-xs text-gray-600">Menunggu</p>
-                                            <p className="font-bold text-yellow-600">{menunggu}</p>
-                                        </div>
-                                        <div className="bg-red-50 rounded-lg p-2">
-                                            <p className="text-xs text-gray-600">Terlambat</p>
-                                            <p className="font-bold text-red-600">{terlambat}</p>
                                         </div>
                                     </div>
 

@@ -20,14 +20,14 @@ interface UserProfile {
 export default function ProfilPage() {
   const [isEditing, setIsEditing] = useState(false)
   const [profile, setProfile] = useState<UserProfile>({
-    nama: "Budi Santoso",
-    email: "budi.santoso@email.com",
+    nama: "BarnibarGG",
+    email: "barnibar.gg@email.com",
     noTelepon: "08123456789",
-    alamat: "Jl. Merdeka No. 123",
-    kota: "Jakarta",
-    provinsi: "DKI Jakarta",
+    alamat: "Jl. jamin gini dong no 123",
+    kota: "Medan Baru",
+    provinsi: "Sumatera Utara",
     kodePos: "12345",
-    tanggalBergabung: "2024-01-15",
+    tanggalBergabung: "2025-25-08",
   })
 
   const [formData, setFormData] = useState(profile)
@@ -57,21 +57,13 @@ export default function ProfilPage() {
       value: "5",
       icon: "👥",
     },
-    {
-      label: "Total Pembayaran",
-      value: "Rp 2.5M",
-      icon: "💰",
-    },
+
     {
       label: "Transaksi",
       value: "24",
       icon: "📊",
     },
-    {
-      label: "Anggaran Terkumpul",
-      value: "Rp 1.2M",
-      icon: "📈",
-    },
+
   ]
 
   return (

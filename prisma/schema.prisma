@@ -7,9 +7,6 @@ datasource db {
     url      = env("DATABASE_URL")
 }
 
-/**
- * ===== Enums =====
- */
 enum RoomType {
     BOARDING // kos/kontrakan
     ARISAN
@@ -73,9 +70,6 @@ enum NotificationPriority {
     HIGH
 }
 
-/**
- * ===== Core Models =====
- */
 model User {
     id        Int      @id @default(autoincrement())
     email     String   @unique

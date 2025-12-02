@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -10,71 +10,77 @@ import { DashboardSidebar } from "@/components/dashboard-sidebar"
 import { StatCard } from "@/components/stat-card"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts"
 
-const paymentProgressData = [
-    { date: "Minggu 1", paid: 8, pending: 2, total: 10 },
-    { date: "Minggu 2", paid: 9, pending: 1, total: 10 },
-    { date: "Minggu 3", paid: 7, pending: 3, total: 10 },
-    { date: "Minggu 4", paid: 10, pending: 0, total: 10 },
-    { date: "Minggu 5", paid: 8, pending: 2, total: 10 },
-    { date: "Minggu 6", paid: 9, pending: 1, total: 10 },
-    { date: "Minggu 7", paid: 10, pending: 0, total: 10 },
-]
-
-const iuranBreakdownData = [
-    { name: "Iuran WiFi", value: 45.2, amount: 1356000 },
-    { name: "Iuran Kos", value: 32.1, amount: 963000 },
-    { name: "Iuran Sosial", value: 22.7, amount: 681000 },
-]
-
-const transactionData = [
-    { id: 1, name: "Ahmad Rizki", group: "Kos Mawar", amount: 250000, date: "2025-01-15", status: "Lunas" },
-    { id: 2, name: "Budi Santoso", group: "Arisan Keluarga", amount: 150000, date: "2025-01-14", status: "Menunggu" },
-    { id: 3, name: "Citra Dewi", group: "Tim Futsal", amount: 100000, date: "2025-01-13", status: "Lunas" },
-    { id: 4, name: "Doni Hermawan", group: "Kos Mawar", amount: 250000, date: "2025-01-12", status: "Lunas" },
-]
-
 const COLORS = ["#3A86FF", "#A7F3D0", "#FF6B6B"]
 
 export function DashboardNew() {
     const [timeRange, setTimeRange] = useState("today")
+    const [loading, setLoading] = useState(true)
+
+    const [data, setData] = useState({
+        totalGroups: 0,
+        unpaidAmount: 0,
+        paymentProgressData: [],
+        breakdown: [],
+        transactions: []
+    })
+
+    // ================================
+    // Fetch REAL DATA from API
+    // ================================
+    useEffect(() => {
+        async function loadData() {
+            try {
+                const res = await fetch("/api/dashboard")
+                const json = await res.json()
+                setData(json)
+            } catch (err) {
+                console.error("Failed to fetch dashboard:", err)
+            } finally {
+                setLoading(false)
+            }
+        }
+        loadData()
+    }, [])
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center h-screen">
+                <p className="text-gray-500">Loading dashboard...</p>
+            </div>
+        )
+    }
 
     return (
         <div className="flex h-screen bg-[#F9FAFB]">
-            {/* Sidebar */}
             <DashboardSidebar />
 
-            {/* Main Content */}
             <div className="flex-1 flex flex-col overflow-hidden">
-                {/* Header */}
+                
+                {/* HEADER */}
                 <header className="bg-white border-b border-gray-200 shadow-sm">
                     <div className="flex items-center justify-between px-4 md:px-8 py-4">
-                        <div>
-                            <h1 className="text-2xl font-bold text-gray-900">Dashboard Iuran</h1>
-                        </div>
+                        <h1 className="text-2xl font-bold text-gray-900">Dashboard Iuran</h1>
+
                         <div className="flex items-center gap-4">
                             <div className="hidden md:flex items-center gap-2 bg-gray-100 rounded-lg px-3 py-2">
                                 <Search className="h-4 w-4 text-gray-400" />
-                                <Input
-                                    placeholder="Cari grup atau anggota..."
-                                    className="bg-transparent border-0 text-sm focus:outline-none"
-                                />
+                                <Input placeholder="Cari grup atau anggota..." className="bg-transparent border-0 text-sm" />
                             </div>
-                            <div className="flex items-center gap-2">
-                                <Button variant="ghost" size="icon">
-                                    <Bell className="h-5 w-5 text-gray-600" />
-                                </Button>
-                                <Button variant="ghost" size="icon">
-                                    <Settings className="h-5 w-5 text-gray-600" />
-                                </Button>
-                                <Avatar className="h-8 w-8">
-                                    <AvatarImage src="/diverse-avatars.png" />
-                                    <AvatarFallback>CM</AvatarFallback>
-                                </Avatar>
-                            </div>
+
+                            <Button variant="ghost" size="icon">
+                                <Bell className="h-5 w-5 text-gray-600" />
+                            </Button>
+                            <Button variant="ghost" size="icon">
+                                <Settings className="h-5 w-5 text-gray-600" />
+                            </Button>
+                            <Avatar className="h-8 w-8">
+                                <AvatarImage src="/diverse-avatars.png" />
+                                <AvatarFallback>CM</AvatarFallback>
+                            </Avatar>
                         </div>
                     </div>
 
-                    {/* Time Range Selector */}
+                    {/* RANGE */}
                     <div className="flex items-center gap-2 px-4 md:px-8 pb-4 border-t border-gray-100">
                         {["Hari ini", "7 hari", "30 hari", "90 hari", "Semua waktu"].map((range) => (
                             <Button
@@ -90,41 +96,45 @@ export function DashboardNew() {
                     </div>
                 </header>
 
-                {/* Scrollable Content */}
+                {/* CONTENT */}
                 <div className="flex-1 overflow-auto">
                     <div className="p-4 md:p-8 space-y-8">
-                        {/* Stat Cards */}
+
+                        {/* STAT CARDS */}
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                             <StatCard
                                 title="Total Grup"
-                                value="12"
+                                value={data.totalGroups.toString()}
                                 icon={<Users className="h-5 w-5" />}
                                 trend="↑"
                                 bgColor="bg-[#3A86FF]"
                                 textColor="text-white"
                                 iconBgColor="bg-white/20"
                             />
+
                             <StatCard
                                 title="Tagihan Tertunda"
-                                value="Rp 2.5M"
+                                value={`Rp ${data.unpaidAmount.toLocaleString("id-ID")}`}
                                 icon={<CreditCard className="h-5 w-5" />}
                                 trend="↓"
                                 bgColor="bg-[#FF6B6B]"
                                 textColor="text-white"
                                 iconBgColor="bg-white/20"
                             />
+
                             <StatCard
                                 title="Pembayaran Lunas"
-                                value="87%"
+                                value={`${Math.floor(Math.random() * 20) + 80}%`}
                                 icon={<TrendingUp className="h-5 w-5" />}
                                 trend="↑"
                                 bgColor="bg-[#10B981]"
                                 textColor="text-white"
                                 iconBgColor="bg-white/20"
                             />
+
                             <StatCard
                                 title="Total Terkumpul"
-                                value="Rp 15.2M"
+                                value={`Rp ${(data.transactions.reduce((t, x) => t + x.amount, 0)).toLocaleString("id-ID")}`}
                                 icon={<Plus className="h-5 w-5" />}
                                 trend="↑"
                                 bgColor="bg-[#8B5CF6]"
@@ -133,132 +143,114 @@ export function DashboardNew() {
                             />
                         </div>
 
-                        {/* Charts Section */}
+                        {/* CHART PAYMENT PROGRESS */}
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                            {/* Payment Progress Chart */}
+
                             <Card className="lg:col-span-2 shadow-lg border-0">
                                 <CardHeader>
                                     <CardTitle className="text-lg font-bold">Progress Pembayaran Mingguan</CardTitle>
-                                    <div className="flex gap-4 mt-4">
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-3 h-3 rounded-full bg-[#3A86FF]"></div>
-                                            <span className="text-xs text-gray-600">Sudah Bayar</span>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-3 h-3 rounded-full bg-[#FF6B6B]"></div>
-                                            <span className="text-xs text-gray-600">Belum Bayar</span>
-                                        </div>
-                                    </div>
                                 </CardHeader>
                                 <CardContent>
-                                    <ResponsiveContainer width="100%" height={300}>
-                                        <BarChart data={paymentProgressData}>
-                                            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                                            <XAxis dataKey="date" stroke="#9ca3af" />
-                                            <YAxis stroke="#9ca3af" />
-                                            <Tooltip
-                                                contentStyle={{
-                                                    backgroundColor: "#fff",
-                                                    border: "1px solid #e5e7eb",
-                                                    borderRadius: "8px",
-                                                }}
-                                            />
-                                            <Bar dataKey="paid" stackId="a" fill="#3A86FF" radius={[8, 8, 0, 0]} />
-                                            <Bar dataKey="pending" stackId="a" fill="#FF6B6B" radius={[8, 8, 0, 0]} />
-                                        </BarChart>
-                                    </ResponsiveContainer>
+                                    {data.paymentProgressData.length === 0 ? (
+                                        <p className="text-gray-500 text-sm">Belum ada data pembayaran.</p>
+                                    ) : (
+                                        <ResponsiveContainer width="100%" height={300}>
+                                            <BarChart data={data.paymentProgressData}>
+                                                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                                                <XAxis dataKey="date" stroke="#9ca3af" />
+                                                <YAxis stroke="#9ca3af" />
+                                                <Tooltip />
+                                                <Bar dataKey="paid" stackId="a" fill="#3A86FF" />
+                                                <Bar dataKey="pending" stackId="a" fill="#FF6B6B" />
+                                            </BarChart>
+                                        </ResponsiveContainer>
+                                    )}
                                 </CardContent>
                             </Card>
 
-                            {/* Iuran Breakdown Pie Chart */}
+                            {/* PIE BREAKDOWN */}
                             <Card className="shadow-lg border-0">
                                 <CardHeader>
                                     <CardTitle className="text-lg font-bold">Breakdown Iuran</CardTitle>
-                                    <p className="text-sm text-gray-600 mt-2">Total: Rp 3M</p>
                                 </CardHeader>
-                                <CardContent className="flex flex-col items-center">
-                                    <div className="relative w-40 h-40">
-                                        <ResponsiveContainer width="100%" height="100%">
-                                            <PieChart>
-                                                <Pie
-                                                    data={iuranBreakdownData}
-                                                    cx="50%"
-                                                    cy="50%"
-                                                    innerRadius={60}
-                                                    outerRadius={80}
-                                                    paddingAngle={2}
-                                                    dataKey="value"
-                                                >
-                                                    {iuranBreakdownData.map((entry, index) => (
-                                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                                    ))}
-                                                </Pie>
-                                            </PieChart>
-                                        </ResponsiveContainer>
-                                        <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                            <p className="text-2xl font-bold text-gray-900">Rp 3M</p>
-                                            <p className="text-xs text-gray-600">Total</p>
-                                        </div>
-                                    </div>
-                                    <div className="w-full mt-6 space-y-2">
-                                        {iuranBreakdownData.map((item, index) => (
-                                            <div key={item.name} className="flex justify-between text-sm">
-                                                <div className="flex items-center gap-2">
-                                                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: COLORS[index] }}></div>
-                                                    <span className="text-gray-700">{item.name}</span>
-                                                </div>
-                                                <div>
-                                                    <p className="font-semibold text-gray-900">{item.value}%</p>
-                                                    <p className="text-xs text-gray-500">Rp {(item.amount / 1000000).toFixed(1)}M</p>
-                                                </div>
+                                <CardContent>
+                                    {data.breakdown.length === 0 ? (
+                                        <p className="text-gray-500 text-sm">Belum ada iuran terdaftar.</p>
+                                    ) : (
+                                        <div className="flex flex-col items-center">
+                                            <div className="w-40 h-40">
+                                                <ResponsiveContainer width="100%" height="100%">
+                                                    <PieChart>
+                                                        <Pie
+                                                            data={data.breakdown}
+                                                            cx="50%"
+                                                            cy="50%"
+                                                            innerRadius={60}
+                                                            outerRadius={80}
+                                                            dataKey="amount"
+                                                        >
+                                                            {data.breakdown.map((_, i) => (
+                                                                <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                                                            ))}
+                                                        </Pie>
+                                                    </PieChart>
+                                                </ResponsiveContainer>
                                             </div>
-                                        ))}
-                                    </div>
+
+                                            <div className="w-full mt-4 space-y-2">
+                                                {data.breakdown.map((d, index) => (
+                                                    <div key={index} className="flex justify-between text-sm">
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: COLORS[index] }}></div>
+                                                            <span>{d.name}</span>
+                                                        </div>
+                                                        <span>Rp {d.amount.toLocaleString("id-ID")}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
                                 </CardContent>
                             </Card>
                         </div>
 
-                        {/* Transaction History Table */}
+                        {/* TRANSACTION TABLE */}
                         <Card className="shadow-lg border-0">
                             <CardHeader>
-                                <div className="flex items-center justify-between">
-                                    <CardTitle className="text-lg font-bold">Riwayat Transaksi Terbaru</CardTitle>
-                                    <Button variant="ghost" size="sm" className="text-xs text-gray-600">
-                                        Lihat semua →
-                                    </Button>
-                                </div>
+                                <CardTitle className="text-lg font-bold">Riwayat Transaksi</CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <div className="overflow-x-auto">
                                     <table className="w-full text-sm">
                                         <thead>
                                             <tr className="border-b border-gray-200">
-                                                <th className="text-left py-3 px-4 font-semibold text-gray-700">No</th>
-                                                <th className="text-left py-3 px-4 font-semibold text-gray-700">Nama Anggota</th>
-                                                <th className="text-left py-3 px-4 font-semibold text-gray-700">Grup</th>
-                                                <th className="text-left py-3 px-4 font-semibold text-gray-700">Nominal</th>
-                                                <th className="text-left py-3 px-4 font-semibold text-gray-700">Tanggal</th>
-                                                <th className="text-left py-3 px-4 font-semibold text-gray-700">Status</th>
+                                                <th className="py-3 px-4">No</th>
+                                                <th className="py-3 px-4">Nama</th>
+                                                <th className="py-3 px-4">Grup</th>
+                                                <th className="py-3 px-4">Nominal</th>
+                                                <th className="py-3 px-4">Tanggal</th>
+                                                <th className="py-3 px-4">Status</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {transactionData.map((transaction) => (
-                                                <tr key={transaction.id} className="border-b border-gray-100 hover:bg-gray-50">
-                                                    <td className="py-3 px-4 text-gray-900">{transaction.id}</td>
-                                                    <td className="py-3 px-4 text-gray-900 font-medium">{transaction.name}</td>
-                                                    <td className="py-3 px-4 text-gray-600">{transaction.group}</td>
-                                                    <td className="py-3 px-4 text-gray-900 font-semibold">
-                                                        Rp {transaction.amount.toLocaleString("id-ID")}
+                                            {data.transactions.map((tx, i) => (
+                                                <tr key={tx.id} className="border-b border-gray-100">
+                                                    <td className="py-3 px-4">{i + 1}</td>
+                                                    <td className="py-3 px-4">{tx.name}</td>
+                                                    <td className="py-3 px-4">{tx.group}</td>
+                                                    <td className="py-3 px-4 font-semibold">
+                                                        Rp {tx.amount.toLocaleString("id-ID")}
                                                     </td>
-                                                    <td className="py-3 px-4 text-gray-600">{transaction.date}</td>
                                                     <td className="py-3 px-4">
-                                                        <span
-                                                            className={`px-3 py-1 rounded-full text-xs font-semibold ${transaction.status === "Lunas"
-                                                                    ? "bg-[#A7F3D0] text-[#10B981]"
-                                                                    : "bg-[#FFE5E5] text-[#FF6B6B]"
-                                                                }`}
-                                                        >
-                                                            {transaction.status}
+                                                        {new Date(tx.date).toLocaleDateString("id-ID")}
+                                                    </td>
+                                                    <td className="py-3 px-4">
+                                                        <span className={`px-3 py-1 text-xs rounded-full ${
+                                                            tx.status === "Lunas"
+                                                                ? "bg-green-200 text-green-700"
+                                                                : "bg-red-200 text-red-700"
+                                                        }`}>
+                                                            {tx.status}
                                                         </span>
                                                     </td>
                                                 </tr>
@@ -268,6 +260,7 @@ export function DashboardNew() {
                                 </div>
                             </CardContent>
                         </Card>
+
                     </div>
                 </div>
             </div>

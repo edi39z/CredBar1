@@ -4,6 +4,7 @@ import { Poppins, Inter, Roboto_Mono } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import { Suspense } from "react"
 import "./globals.css"
+import { AuthProvider } from "./providers/authprovider"
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -26,22 +27,24 @@ export const metadata: Metadata = {
   description: "Kelola iuran, hutang, dan keuangan kelompok Anda dengan mudah",
   generator: "v0.app",
   icons: {
-    icon: "/logo.png", // lokasi favicon di folder public
+    icon: "/logo.png",
   },
 }
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode
-}>) {
+}) {
   return (
     <html lang="id">
       <body className={`font-sans ${poppins.variable} ${inter.variable} ${robotoMono.variable} antialiased`}>
-        <Suspense fallback={null}>
-          {children}
-          <Analytics />
-        </Suspense>
+        <AuthProvider>
+          <Suspense fallback={null}>
+            {children}
+            <Analytics />
+          </Suspense>
+        </AuthProvider>
       </body>
     </html>
   )

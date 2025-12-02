@@ -32,9 +32,17 @@ export function DashboardSidebar() {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
     const pathname = usePathname()
 
-    const handleLogout = () => {
-        window.location.href = "/login"
+    const handleLogout = async () => {
+    try {
+        await fetch("/api/auth/logout", {
+            method: "POST",
+        })
+        window.location.href = "/login" // redirect setelah token dihapus
+    } catch (error) {
+        console.error("Logout gagal:", error)
     }
+}
+
 
     return (
         <>

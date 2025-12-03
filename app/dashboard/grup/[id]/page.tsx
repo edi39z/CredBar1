@@ -2,7 +2,7 @@
 import type React from "react"
 import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { ArrowLeft, Plus, Trash2, X, Users, DollarSign, TrendingUp, FileText, Crown } from "lucide-react"
+import { ArrowLeft, Plus, Trash2, Users, DollarSign, TrendingUp, FileText, Crown } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -81,76 +81,51 @@ export default function GrupDetailPage() {
   const params = useParams()
   const router = useRouter()
   const roomId = params.id as string
-
   const [room, setRoom] = useState<RoomData | null>(null)
   const [loading, setLoading] = useState(true)
   const [currentUserRole, setCurrentUserRole] = useState<"ADMIN" | "MEMBER" | null>(null)
-  const [activeTab, setActiveTab] = useState<"overview" | "iuran" | "anggota">("overview")
-  const [selectedDue, setSelectedDue] = useState<DueData | null>(null)
-  const [showDueModal, setShowDueModal] = useState(false)
-  const [showPaymentModal, setShowPaymentModal] = useState(false)
+  const [activeTab, setActiveTab] = useState<"overview" | "anggota">("overview")
   const [selectedInvoice, setSelectedInvoice] = useState<InvoiceData | null>(null)
+  const [showPaymentModal, setShowPaymentModal] = useState(false)
   const [showAddMemberModal, setShowAddMemberModal] = useState(false)
-
   const [newMemberForm, setNewMemberForm] = useState({
     name: "",
     email: "",
   })
-
-  const [dueForm, setDueForm] = useState({
-    name: "",
-    description: "",
-    amount: "",
-    isRecurring: false,
-    frequency: "MONTHLY",
-    startDate: "",
-  })
-
   const [paymentForm, setPaymentForm] = useState({
     amount: "",
     method: "TRANSFER",
     note: "",
   })
 
-useEffect(() => {
-  const fetchRoom = async () => {
-    try {
-      // Fetch user
-      const userResponse = await fetch("/api/auth/me")
-      const userData = await userResponse.json()
-
-      // ambil userId SESUAI RESPONSE BACKEND
-      const currentUserId = userData?.userId ?? null
-
-      // buat headers
-      const headers: Record<string, string> = {}
-      if (currentUserId) {
-        headers["x-user-id"] = String(currentUserId)
+  useEffect(() => {
+    const fetchRoom = async () => {
+      try {
+        const userResponse = await fetch("/api/auth/me")
+        const userData = await userResponse.json()
+        const currentUserId = userData?.userId ?? null
+        const headers: Record<string, string> = {}
+        if (currentUserId) {
+          headers["x-user-id"] = String(currentUserId)
+        }
+        const response = await fetch(`/api/rooms/${roomId}`, {
+          headers,
+        })
+        const result = await response.json()
+        if (result.success) {
+          setRoom(result.data)
+          setCurrentUserRole(result.currentUserRole)
+        }
+      } catch (error) {
+        console.error("Failed to fetch room:", error)
+      } finally {
+        setLoading(false)
       }
-
-      // fetch room dengan header user id
-      const response = await fetch(`/api/rooms/${roomId}`, {
-        headers,
-      })
-
-      const result = await response.json()
-
-      if (result.success) {
-        setRoom(result.data)
-        setCurrentUserRole(result.currentUserRole)
-      }
-    } catch (error) {
-      console.error("Failed to fetch room:", error)
-    } finally {
-      setLoading(false)
     }
-  }
-
-  if (roomId) {
-    fetchRoom()
-  }
-}, [roomId])
-
+    if (roomId) {
+      fetchRoom()
+    }
+  }, [roomId])
 
   const isAdmin = currentUserRole === "ADMIN"
 
@@ -224,55 +199,9 @@ useEffect(() => {
     }
   }
 
-  const handleAddDue = async (e: React.FormEvent) => {
-    e.preventDefault()
-    try {
-      const response = await fetch(`/api/rooms/${roomId}/dues`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: dueForm.name,
-          description: dueForm.description,
-          amount: Number.parseInt(dueForm.amount),
-          isRecurring: dueForm.isRecurring,
-          frequency: dueForm.frequency,
-          startDate: dueForm.startDate,
-        }),
-      })
-
-      if (response.ok) {
-        const result = await response.json()
-        setRoom({
-          ...room,
-          dues: [...room.dues, result.data],
-        })
-        setShowDueModal(false)
-        setDueForm({ name: "", description: "", amount: "", isRecurring: false, frequency: "MONTHLY", startDate: "" })
-      }
-    } catch (error) {
-      console.error("Failed to add due:", error)
-    }
-  }
-
-  const handleDeleteDue = async (dueId: number) => {
-    if (confirm("Hapus iuran ini?")) {
-      try {
-        await fetch(`/api/rooms/${roomId}/dues/${dueId}`, { method: "DELETE" })
-        setRoom({
-          ...room,
-          dues: room.dues.filter((d) => d.id !== dueId),
-        })
-        setSelectedDue(null)
-      } catch (error) {
-        console.error("Failed to delete due:", error)
-      }
-    }
-  }
-
   const handlePayment = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!selectedInvoice) return
-
     try {
       const response = await fetch(`/api/rooms/${roomId}/invoices/${selectedInvoice.id}/payments`, {
         method: "POST",
@@ -281,10 +210,9 @@ useEffect(() => {
           amount: Number.parseInt(paymentForm.amount),
           method: paymentForm.method,
           note: paymentForm.note,
-          createdById: 1, // Replace with actual user ID from session
+          createdById: 1,
         }),
       })
-
       if (response.ok) {
         const result = await response.json()
         const roomResponse = await fetch(`/api/rooms/${roomId}`)
@@ -301,7 +229,6 @@ useEffect(() => {
   const handleAddMember = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!newMemberForm.name || !newMemberForm.email) return
-
     try {
       const response = await fetch(`/api/rooms/${roomId}/members`, {
         method: "POST",
@@ -312,7 +239,6 @@ useEffect(() => {
           role: "MEMBER",
         }),
       })
-
       if (response.ok) {
         const roomResponse = await fetch(`/api/rooms/${roomId}`)
         const roomResult = await roomResponse.json()
@@ -429,10 +355,8 @@ useEffect(() => {
             Overview
           </button>
           <button
-            onClick={() => setActiveTab("iuran")}
-            className={`px-4 py-3 font-semibold transition-colors ${
-              activeTab === "iuran" ? "text-blue-600 border-b-2 border-blue-600" : "text-gray-600 hover:text-gray-900"
-            }`}
+            onClick={() => router.push(`/dashboard/grup/${roomId}/iuran`)}
+            className="px-4 py-3 font-semibold transition-colors text-gray-600 hover:text-gray-900"
           >
             Iuran
           </button>
@@ -482,7 +406,6 @@ useEffect(() => {
                     </div>
                   </Card>
                 </div>
-
                 <Card className="bg-white rounded-2xl shadow-lg border-0 overflow-hidden">
                   <div className="p-6 md:p-8">
                     <h3 className="text-xl font-bold text-gray-900 mb-6">Ringkasan</h3>
@@ -565,98 +488,6 @@ useEffect(() => {
           </>
         )}
 
-        {activeTab === "iuran" && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2">
-              <Card className="bg-white rounded-2xl shadow-lg border-0 overflow-hidden">
-                <div className="p-6 md:p-8">
-                  <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-2xl font-bold text-gray-900">Daftar Iuran</h2>
-                    {isAdmin && (
-                      <Button
-                        onClick={() => setShowDueModal(true)}
-                        className="bg-blue-500 hover:bg-blue-600 text-white flex items-center gap-2"
-                      >
-                        <Plus size={20} />
-                        Tambah Iuran
-                      </Button>
-                    )}
-                  </div>
-                  <div className="space-y-3">
-                    {room.dues.map((due) => {
-                      const paid = due.invoices.filter((i) => i.status === "PAID").length
-                      const total = due.invoices.length
-                      const progress = total > 0 ? (paid / total) * 100 : 0
-
-                      return (
-                        <div
-                          key={due.id}
-                          onClick={() => setSelectedDue(due)}
-                          className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
-                            selectedDue?.id === due.id
-                              ? "border-blue-500 bg-blue-50"
-                              : "border-gray-200 hover:border-blue-300"
-                          }`}
-                        >
-                          <div className="flex items-start justify-between mb-3">
-                            <div>
-                              <h3 className="font-bold text-gray-900">{due.name}</h3>
-                              <p className="text-sm text-gray-600">{due.description}</p>
-                            </div>
-                            {isAdmin && (
-                              <button
-                                onClick={() => handleDeleteDue(due.id)}
-                                className="text-red-500 hover:text-red-700"
-                              >
-                                <Trash2 size={16} />
-                              </button>
-                            )}
-                          </div>
-                          <div className="grid grid-cols-2 gap-3 mb-3">
-                            <div>
-                              <p className="text-xs text-gray-600">Nominal Total</p>
-                              <p className="font-bold text-gray-900">Rp {due.amount.toLocaleString("id-ID")}</p>
-                            </div>
-                          </div>
-                          <div className="w-full bg-gray-200 rounded-full h-2">
-                            <div
-                              className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full transition-all"
-                              style={{ width: `${progress}%` }}
-                            />
-                          </div>
-                        </div>
-                      )
-                    })}
-                  </div>
-                </div>
-              </Card>
-            </div>
-
-            {selectedDue && (
-              <Card className="bg-white rounded-2xl shadow-lg border-0 overflow-hidden">
-                <div className="p-6 md:p-8">
-                  <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-xl font-bold text-gray-900">Detail Iuran</h3>
-                    <button onClick={() => setSelectedDue(null)} className="text-gray-500 hover:text-gray-700">
-                      <X size={20} />
-                    </button>
-                  </div>
-                  <div className="space-y-4">
-                    <div>
-                      <p className="text-xs text-gray-600 mb-1">Nama</p>
-                      <p className="font-bold text-gray-900">{selectedDue.name}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-600 mb-1">Jumlah</p>
-                      <p className="font-bold text-gray-900">Rp {selectedDue.amount.toLocaleString("id-ID")}</p>
-                    </div>
-                  </div>
-                </div>
-              </Card>
-            )}
-          </div>
-        )}
-
         {activeTab === "anggota" && (
           <Card className="bg-white rounded-2xl shadow-lg border-0 overflow-hidden">
             <div className="p-6 md:p-8">
@@ -720,62 +551,6 @@ useEffect(() => {
               </div>
             </div>
           </Card>
-        )}
-
-        {showDueModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <Card className="bg-white rounded-2xl shadow-2xl w-full max-w-md border-0">
-              <div className="p-6">
-                <h2 className="text-2xl font-bold text-gray-900 mb-6">Tambah Iuran Baru</h2>
-                <form onSubmit={handleAddDue} className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Nama Iuran</label>
-                    <Input
-                      type="text"
-                      placeholder="Contoh: WiFi Bulanan"
-                      value={dueForm.name}
-                      onChange={(e) => setDueForm({ ...dueForm, name: e.target.value })}
-                      required
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Deskripsi</label>
-                    <Input
-                      type="text"
-                      placeholder="Deskripsi iuran"
-                      value={dueForm.description}
-                      onChange={(e) => setDueForm({ ...dueForm, description: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Nominal (Rp)</label>
-                    <Input
-                      type="number"
-                      placeholder="300000"
-                      value={dueForm.amount}
-                      onChange={(e) => setDueForm({ ...dueForm, amount: e.target.value })}
-                      required
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                    />
-                  </div>
-                  <div className="flex gap-3 pt-4">
-                    <Button
-                      type="button"
-                      onClick={() => setShowDueModal(false)}
-                      className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-900"
-                    >
-                      Batal
-                    </Button>
-                    <Button type="submit" className="flex-1 bg-blue-500 hover:bg-blue-600 text-white">
-                      Buat Iuran
-                    </Button>
-                  </div>
-                </form>
-              </div>
-            </Card>
-          </div>
         )}
 
         {showPaymentModal && selectedInvoice && (

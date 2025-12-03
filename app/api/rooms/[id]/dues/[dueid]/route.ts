@@ -1,71 +1,121 @@
-import { prisma } from "@/lib/prisma"
 import { type NextRequest, NextResponse } from "next/server"
+import { prisma } from "@/lib/prisma"
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string; dueId: string }> }) {
   try {
-    const { dueId } = await params
+    const { id, dueId } = await params
+    const roomId = Number.parseInt(id)
+    const dueIdInt = Number.parseInt(dueId)
+
+    if (Number.isNaN(roomId) || Number.isNaN(dueIdInt)) {
+      return NextResponse.json({ success: false, message: "Invalid room ID or due ID" }, { status: 400 })
+    }
+
     const due = await prisma.due.findUnique({
-      where: { id: Number.parseInt(dueId) },
+      where: { id: dueIdInt },
       include: {
         invoices: {
           include: {
-            payments: true,
             member: true,
+            payments: true,
           },
         },
+        room: true,
       },
     })
 
-    if (!due) {
-      return NextResponse.json({ success: false, error: "Due not found" }, { status: 404 })
+    if (!due || due.roomId !== roomId) {
+      return NextResponse.json({ success: false, message: "Due not found" }, { status: 404 })
     }
 
-    return NextResponse.json({ success: true, data: due })
+    return NextResponse.json({
+      success: true,
+      data: due,
+    })
   } catch (error) {
-    return NextResponse.json({ success: false, error: "Failed to fetch due" }, { status: 500 })
+    console.error("Error fetching due:", error)
+    return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 })
   }
 }
 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string; dueId: string }> }) {
   try {
-    const { dueId } = await params
+    const { id, dueId } = await params
+    const roomId = Number.parseInt(id)
+    const dueIdInt = Number.parseInt(dueId)
     const body = await request.json()
-    const { name, description, amount, isActive } = body
 
-    const due = await prisma.due.update({
-      where: { id: Number.parseInt(dueId) },
+    if (Number.isNaN(roomId) || Number.isNaN(dueIdInt)) {
+      return NextResponse.json({ success: false, message: "Invalid room ID or due ID" }, { status: 400 })
+    }
+
+    // Verifikasi due ada dan milik room
+    const due = await prisma.due.findUnique({
+      where: { id: dueIdInt },
+    })
+
+    if (!due || due.roomId !== roomId) {
+      return NextResponse.json({ success: false, message: "Due not found" }, { status: 404 })
+    }
+
+    // Update due
+    const updatedDue = await prisma.due.update({
+      where: { id: dueIdInt },
       data: {
-        name,
-        description,
-        amount,
-        isActive,
+        name: body.name || due.name,
+        description: body.description !== undefined ? body.description : due.description,
+        amount: body.amount ? Number.parseInt(body.amount) : due.amount,
+        isRecurring: body.isRecurring !== undefined ? body.isRecurring : due.isRecurring,
+        frequency: body.frequency || due.frequency,
+        interval: body.interval || due.interval,
+        isActive: body.isActive !== undefined ? body.isActive : due.isActive,
       },
       include: {
-        invoices: {
-          include: {
-            payments: true,
-            member: true,
-          },
-        },
+        invoices: true,
       },
     })
 
-    return NextResponse.json({ success: true, data: due })
+    return NextResponse.json({
+      success: true,
+      message: "Due updated successfully",
+      data: updatedDue,
+    })
   } catch (error) {
-    return NextResponse.json({ success: false, error: "Failed to update due" }, { status: 500 })
+    console.error("Error updating due:", error)
+    return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 })
   }
 }
 
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string; dueId: string }> }) {
   try {
-    const { dueId } = await params
+    const { id, dueId } = await params
+    const roomId = Number.parseInt(id)
+    const dueIdInt = Number.parseInt(dueId)
 
-    await prisma.due.delete({
-      where: { id: Number.parseInt(dueId) },
+    if (Number.isNaN(roomId) || Number.isNaN(dueIdInt)) {
+      return NextResponse.json({ success: false, message: "Invalid room ID or due ID" }, { status: 400 })
+    }
+
+    // Verifikasi due ada
+    const due = await prisma.due.findUnique({
+      where: { id: dueIdInt },
     })
 
-    return NextResponse.json({ success: true, message: "Due deleted" })
+    if (!due || due.roomId !== roomId) {
+      return NextResponse.json({ success: false, message: "Due not found" }, { status: 404 })
+    }
+
+    // Hapus due (invoices akan terhapus otomatis karena onDelete: Cascade)
+    await prisma.due.delete({
+      where: { id: dueIdInt },
+    })
+
+    return NextResponse.json({
+      success: true,
+      message: "Due deleted successfully",
+    })
   } catch (error) {
-    return NextResponse.json({ success: false, error: "Failed to delete due" }, { status: 500 })
+    console.error("Error deleting due:", error)
+    return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 })
   }
 }

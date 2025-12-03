@@ -135,7 +135,7 @@ model Due {
     roomId      Int
     name        String
     description String?
-    amount      Int // in rupiah
+    amount      BigInt
     isRecurring Boolean       @default(false)
     frequency   DueFrequency? // if recurring
     interval    Int? // e.g. every 1 month
@@ -159,7 +159,7 @@ model Invoice {
     memberId      Int // userId of member
     dueId         Int?
     description   String?
-    amount        Int
+    amount        BigInt
     status        InvoiceStatus  @default(DRAFT)
     dueDate       DateTime
     sentAt        DateTime?
@@ -181,7 +181,7 @@ model Invoice {
 model Payment {
     id          Int           @id @default(autoincrement())
     invoiceId   String
-    amount      Int
+    amount      BigInt
     method      PaymentMethod
     paidAt      DateTime      @default(now())
     note        String?

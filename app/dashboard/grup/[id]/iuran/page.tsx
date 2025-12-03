@@ -58,7 +58,6 @@ export default function IuranPage() {
   const params = useParams()
   const router = useRouter()
   const roomId = params.id as string
-
   const [iurans, setIurans] = useState<Iuran[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -71,7 +70,9 @@ export default function IuranPage() {
     amount: "",
     isRecurring: false,
     frequency: "MONTHLY",
+    interval: "1",
     startDate: "",
+    nextDueDate: "",
   })
 
   useEffect(() => {
@@ -83,15 +84,11 @@ export default function IuranPage() {
       setLoading(true)
       setError(null)
       const response = await fetch(`/api/rooms/${roomId}/dues`)
-
       if (!response.ok) {
         throw new Error("Gagal memuat data iuran")
       }
-
       const result = await response.json()
-
       if (result.success) {
-        // Transform data dari backend format ke frontend format
         const transformedIurans = result.data.map((due: Due) => ({
           id: due.id,
           grupId: due.roomId,
@@ -124,7 +121,9 @@ export default function IuranPage() {
         amount: iuran.nominalTotal.toString(),
         isRecurring: false,
         frequency: "MONTHLY",
+        interval: "1",
         startDate: "",
+        nextDueDate: iuran.tanggalJatuhTempo,
       })
     } else {
       setEditingId(null)
@@ -134,7 +133,9 @@ export default function IuranPage() {
         amount: "",
         isRecurring: false,
         frequency: "MONTHLY",
+        interval: "1",
         startDate: "",
+        nextDueDate: "",
       })
     }
     setShowModal(true)
@@ -143,10 +144,16 @@ export default function IuranPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
-
     try {
-      const url = editingId ? `/api/rooms/${roomId}/dues/${editingId}` : `/api/rooms/${roomId}/dues`
+      if (!formData.nextDueDate) {
+        throw new Error("Tanggal jatuh tempo harus diisi")
+      }
 
+      if (formData.isRecurring && !formData.startDate) {
+        throw new Error("Tanggal mulai harus diisi untuk iuran berulang")
+      }
+
+      const url = editingId ? `/api/rooms/${roomId}/dues/${editingId}` : `/api/rooms/${roomId}/dues`
       const method = editingId ? "PUT" : "POST"
 
       const response = await fetch(url, {
@@ -158,14 +165,14 @@ export default function IuranPage() {
           amount: Number.parseInt(formData.amount),
           isRecurring: formData.isRecurring,
           frequency: formData.isRecurring ? formData.frequency : undefined,
+          interval: formData.isRecurring ? Number.parseInt(formData.interval) : undefined,
           startDate: formData.startDate || undefined,
+          nextDueDate: formData.nextDueDate,
         }),
       })
-
       if (!response.ok) {
         throw new Error("Gagal menyimpan iuran")
       }
-
       await fetchIurans()
       setShowModal(false)
       setFormData({
@@ -174,7 +181,9 @@ export default function IuranPage() {
         amount: "",
         isRecurring: false,
         frequency: "MONTHLY",
+        interval: "1",
         startDate: "",
+        nextDueDate: "",
       })
     } catch (err) {
       console.error("Error submitting form:", err)
@@ -190,11 +199,9 @@ export default function IuranPage() {
         const response = await fetch(`/api/rooms/${roomId}/dues/${id}`, {
           method: "DELETE",
         })
-
         if (!response.ok) {
           throw new Error("Gagal menghapus iuran")
         }
-
         await fetchIurans()
       } catch (err) {
         console.error("Error deleting iuran:", err)
@@ -265,7 +272,6 @@ export default function IuranPage() {
               const totalLunas = iuran.members
                 .filter((m) => m.status === "lunas")
                 .reduce((sum, m) => sum + m.nominal, 0)
-
               return (
                 <Card
                   key={iuran.id}
@@ -397,12 +403,13 @@ export default function IuranPage() {
         {/* Modal */}
         {showModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <Card className="bg-white rounded-2xl shadow-2xl w-full max-w-md border-0">
+            <Card className="bg-white rounded-2xl shadow-2xl w-full max-w-md border-0 max-h-[90vh] overflow-y-auto">
               <div className="p-6">
                 <h2 className="text-2xl font-bold text-gray-900 mb-6">
                   {editingId ? "Edit Iuran" : "Buat Iuran Baru"}
                 </h2>
                 <form onSubmit={handleSubmit} className="space-y-4">
+                  {/* Name Field */}
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">Judul Iuran</label>
                     <Input
@@ -414,6 +421,8 @@ export default function IuranPage() {
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
+
+                  {/* Description Field */}
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">Deskripsi</label>
                     <Input
@@ -424,6 +433,8 @@ export default function IuranPage() {
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
+
+                  {/* Amount Field */}
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">Nominal Total (Rp)</label>
                     <Input
@@ -435,6 +446,73 @@ export default function IuranPage() {
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Tanggal Jatuh Tempo *</label>
+                    <Input
+                      type="date"
+                      value={formData.nextDueDate}
+                      onChange={(e) => setFormData({ ...formData, nextDueDate: e.target.value })}
+                      required
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div className="border-t pt-4 mt-4">
+                    <label className="flex items-center gap-3 cursor-pointer mb-4">
+                      <input
+                        type="checkbox"
+                        checked={formData.isRecurring}
+                        onChange={(e) => setFormData({ ...formData, isRecurring: e.target.checked })}
+                        className="w-4 h-4 rounded border-gray-300"
+                      />
+                      <span className="text-sm font-semibold text-gray-700">Iuran Berulang</span>
+                    </label>
+
+                    {formData.isRecurring && (
+                      <div className="space-y-4 bg-blue-50 p-4 rounded-lg">
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">Tanggal Mulai *</label>
+                          <Input
+                            type="date"
+                            value={formData.startDate}
+                            onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">Frekuensi</label>
+                          <select
+                            value={formData.frequency}
+                            onChange={(e) => setFormData({ ...formData, frequency: e.target.value })}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                          >
+                            <option value="DAILY">Harian</option>
+                            <option value="WEEKLY">Mingguan</option>
+                            <option value="MONTHLY">Bulanan</option>
+                            <option value="QUARTERLY">Triwulanan</option>
+                            <option value="YEARLY">Tahunan</option>
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">Interval</label>
+                          <Input
+                            type="number"
+                            placeholder="1"
+                            value={formData.interval}
+                            onChange={(e) => setFormData({ ...formData, interval: e.target.value })}
+                            min="1"
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                          <p className="text-xs text-gray-500 mt-1">Contoh: setiap 1 bulan, 2 minggu, dll</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Buttons */}
                   <div className="flex gap-3 pt-4">
                     <Button
                       type="button"

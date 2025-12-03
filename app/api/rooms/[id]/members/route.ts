@@ -3,9 +3,16 @@ import { PrismaClient } from "@prisma/client"
 
 const prisma = new PrismaClient()
 
-export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
+// Perhatikan tipe params sekarang adalah Promise
+export async function POST(
+  request: NextRequest, 
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
-    const roomId = Number(params.id)
+    // 1. Await params terlebih dahulu
+    const { id } = await params
+    const roomId = Number(id)
+    
     const { email, role = "MEMBER" } = await request.json()
 
     if (!email || typeof email !== "string") {
@@ -63,9 +70,15 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
   }
 }
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+// Perhatikan tipe params sekarang adalah Promise
+export async function GET(
+  request: NextRequest, 
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
-    const roomId = Number(params.id)
+    // 1. Await params terlebih dahulu
+    const { id } = await params
+    const roomId = Number(id)
 
     const members = await prisma.roomMember.findMany({
       where: { roomId },

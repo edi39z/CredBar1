@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { useState, useEffect } from "react"
-import { Plus, Edit2, Trash2, Users, Calendar, Shield } from "lucide-react"
+import { Plus, Edit2, Trash2, Users, Shield } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card } from "@/components/ui/card"
@@ -41,15 +41,12 @@ export default function GrupPage() {
   const [formData, setFormData] = useState({
     nama: "",
     deskripsi: "",
-    nominal: "",
-    tanggalJatuhTempo: "",
   })
 
   useEffect(() => {
     if (!userLoading && user?.id) {
       fetchGroups()
     } else if (!userLoading && !user?.id) {
-      // tidak ada user -> jangan fetch, selesai loading
       setLoading(false)
     }
   }, [userLoading, user?.id])
@@ -62,9 +59,7 @@ export default function GrupPage() {
   const fetchGroups = async () => {
     try {
       setLoading(true)
-      const response = await fetch("/api/rooms", {
-        headers: getAuthHeaders(),
-      })
+      const response = await fetch("/api/rooms", { headers: getAuthHeaders() })
       if (!response.ok) throw new Error("Failed to fetch groups")
       const data = await response.json()
       setGroups(data)
@@ -82,16 +77,12 @@ export default function GrupPage() {
       setFormData({
         nama: grup.nama,
         deskripsi: grup.deskripsi,
-        nominal: grup.nominal.toString(),
-        tanggalJatuhTempo: grup.tanggalJatuhTempo,
       })
     } else {
       setEditingId(null)
       setFormData({
         nama: "",
         deskripsi: "",
-        nominal: "",
-        tanggalJatuhTempo: "",
       })
     }
     setShowModal(true)
@@ -100,40 +91,30 @@ export default function GrupPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
-              if (editingId) {
-          const response = await fetch(`/api/rooms/${editingId}`, {
-            method: "PUT",
-            headers: getAuthHeaders(),
-            body: JSON.stringify({
-              name: formData.nama,
-              description: formData.deskripsi,
-            }),
-          })
-          if (!response.ok) throw new Error("Failed to update group")
-        }
-        else {
-        const response = await fetch("/api/rooms", {
+      if (editingId) {
+        await fetch(`/api/rooms/${editingId}`, {
+          method: "PUT",
+          headers: getAuthHeaders(),
+          body: JSON.stringify({
+            name: formData.nama,
+            description: formData.deskripsi,
+          }),
+        })
+      } else {
+        await fetch("/api/rooms", {
           method: "POST",
           headers: getAuthHeaders(),
           body: JSON.stringify({
             nama: formData.nama,
             deskripsi: formData.deskripsi,
-            nominal: Number.parseInt(formData.nominal),
-            tanggalJatuhTempo: formData.tanggalJatuhTempo,
             createdById: user?.id,
           }),
         })
-        if (!response.ok) throw new Error("Failed to create group")
       }
 
       await fetchGroups()
       setShowModal(false)
-      setFormData({
-        nama: "",
-        deskripsi: "",
-        nominal: "",
-        tanggalJatuhTempo: "",
-      })
+      setFormData({ nama: "", deskripsi: "" })
     } catch (error) {
       console.error("Error submitting form:", error)
     }
@@ -142,11 +123,10 @@ export default function GrupPage() {
   const handleDelete = async (id: string) => {
     if (!confirm("Apakah Anda yakin ingin menghapus grup ini?")) return
     try {
-      const response = await fetch(`/api/rooms/${id}`, {
+      await fetch(`/api/rooms/${id}`, {
         method: "DELETE",
         headers: getAuthHeaders(),
       })
-      if (!response.ok) throw new Error("Failed to delete group")
       await fetchGroups()
     } catch (error) {
       console.error("Error deleting group:", error)
@@ -203,16 +183,11 @@ export default function GrupPage() {
         {/* Grup Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
           {groups.map((grup) => {
-            const lunas = grup.members.filter((m) => m.status === "lunas").length
-            const menunggu = grup.members.filter((m) => m.status === "menunggu").length
-            const terlambat = grup.members.filter((m) => m.status === "terlambat").length
-
             return (
               <Card
                 key={grup.id}
                 className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-shadow overflow-hidden border-0"
               >
-                {/* Card Header with Color */}
                 <div
                   className={`h-3 ${
                     grup.status === "aktif"
@@ -221,11 +196,9 @@ export default function GrupPage() {
                   }`}
                 />
                 <div className="p-6">
-                  {/* Header dengan Role Badge */}
                   <div className="flex items-start justify-between mb-4">
-                    <div>
-                      <h3 className="text-xl font-bold text-gray-900">{grup.nama}</h3>
-                    </div>
+                    <h3 className="text-xl font-bold text-gray-900">{grup.nama}</h3>
+
                     {grup.role === "admin" && (
                       <div className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
                         <Shield size={14} />
@@ -234,7 +207,8 @@ export default function GrupPage() {
                     )}
                   </div>
 
-                  <div className="grid grid-cols-3 gap-3 mb-6">
+                  {/* Grid tanpa Hari */}
+                  <div className="grid grid-cols-2 gap-3 mb-6">
                     <div className="bg-blue-50 rounded-lg p-3">
                       <div className="flex items-center gap-2 mb-1">
                         <Users size={16} className="text-blue-500" />
@@ -242,26 +216,14 @@ export default function GrupPage() {
                       </div>
                       <p className="font-bold text-gray-900 text-sm">{grup.jumlahAnggota}</p>
                     </div>
+
                     <div className="bg-green-50 rounded-lg p-3">
                       <div className="flex items-center gap-2 mb-1">
                         <Shield size={16} className="text-green-500" />
                         <span className="text-xs text-gray-600">Status</span>
                       </div>
-                      <p className="font-bold text-gray-900 text-sm">{grup.role === "admin" ? "Admin" : "Member"}</p>
-                    </div>
-                    <div className="bg-purple-50 rounded-lg p-3">
-                      <div className="flex items-center gap-2 mb-1">
-                        <Calendar size={16} className="text-purple-500" />
-                        <span className="text-xs text-gray-600">Hari</span>
-                      </div>
                       <p className="font-bold text-gray-900 text-sm">
-                        {Math.max(
-                          0,
-                          Math.ceil(
-                            (new Date(grup.tanggalJatuhTempo).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24),
-                          ),
-                        )}{" "}
-                        hari
+                        {grup.role === "admin" ? "Admin" : "Member"}
                       </p>
                     </div>
                   </div>
@@ -274,6 +236,7 @@ export default function GrupPage() {
                         Lihat Detail
                       </Button>
                     </Link>
+
                     {grup.role === "admin" && (
                       <>
                         <Button
@@ -283,6 +246,7 @@ export default function GrupPage() {
                           <Edit2 size={16} />
                           Edit
                         </Button>
+
                         <Button
                           onClick={() => handleDelete(grup.id)}
                           className="flex-1 bg-red-500 hover:bg-red-600 text-white flex items-center justify-center gap-2"
@@ -304,8 +268,12 @@ export default function GrupPage() {
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
             <Card className="bg-white rounded-2xl shadow-2xl w-full max-w-md border-0">
               <div className="p-6">
-                <h2 className="text-2xl font-bold text-gray-900 mb-6">{editingId ? "Edit Grup" : "Buat Grup Baru"}</h2>
+                <h2 className="text-2xl font-bold text-gray-900 mb-6">
+                  {editingId ? "Edit Grup" : "Buat Grup Baru"}
+                </h2>
+
                 <form onSubmit={handleSubmit} className="space-y-4">
+                  {/* Nama */}
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">Nama Grup</label>
                     <Input
@@ -316,6 +284,8 @@ export default function GrupPage() {
                       required
                     />
                   </div>
+
+                  {/* Deskripsi */}
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">Deskripsi</label>
                     <Input
@@ -326,32 +296,7 @@ export default function GrupPage() {
                       required
                     />
                   </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Nominal Iuran (Rp)</label>
-                    <Input
-                      type="number"
-                      placeholder="50000"
-                      value={formData.nominal}
-                      onChange={(e) => setFormData({ ...formData, nominal: e.target.value })}
-                      required
-                      disabled={!!editingId}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Tanggal Jatuh Tempo</label>
-                    <Input
-                      type="date"
-                      value={formData.tanggalJatuhTempo}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          tanggalJatuhTempo: e.target.value,
-                        })
-                      }
-                      required
-                      disabled={!!editingId}
-                    />
-                  </div>
+
                   <div className="flex gap-3 pt-4">
                     <Button
                       type="button"

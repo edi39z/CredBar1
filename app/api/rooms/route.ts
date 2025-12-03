@@ -1,9 +1,9 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 
+// ====================== GET ROOMS ======================
 export async function GET(request: NextRequest) {
   try {
-    // Ambil user login dari middleware
     const userIdHeader = request.headers.get("x-user-id")
     const userId = userIdHeader ? Number(userIdHeader) : null
 
@@ -42,20 +42,17 @@ export async function GET(request: NextRequest) {
         id: room.id.toString(),
         nama: room.name,
         deskripsi: room.description || "",
-        nominal: 0,
-        tanggalJatuhTempo: new Date().toISOString().split("T")[0],
         jumlahAnggota: room.members.length,
-        totalTerkumpul: 0,
-        status: "aktif",
         role: currentMember?.role === "ADMIN" ? "admin" : "member",
+
         members: room.members.map((m) => ({
           id: m.user.id.toString(),
           nama: m.user.name || "Unknown",
           email: m.user.email,
-          status: m.role === "ADMIN" ? "lunas" : "menunggu",
-          nominal: 0,
+          avatarUrl: m.user.avatarUrl,
         })),
-        createdAt: room.createdAt.toISOString().split("T")[0],
+
+        createdAt: room.createdAt.toISOString(),
       }
     })
 
@@ -66,16 +63,17 @@ export async function GET(request: NextRequest) {
   }
 }
 
+// ====================== CREATE ROOM ======================
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { nama, deskripsi, nominal, tanggalJatuhTempo } = body
+    const { nama, deskripsi } = body
 
     const userIdHeader = request.headers.get("x-user-id")
     const userId = userIdHeader ? Number(userIdHeader) : null
 
-    if (!nama || !nominal) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
+    if (!nama) {
+      return NextResponse.json({ error: "Nama group wajib diisi" }, { status: 400 })
     }
 
     if (!userId) {
@@ -112,20 +110,17 @@ export async function POST(request: NextRequest) {
       id: newRoom.id.toString(),
       nama: newRoom.name,
       deskripsi: newRoom.description || "",
-      nominal,
-      tanggalJatuhTempo,
       jumlahAnggota: newRoom.members.length,
-      totalTerkumpul: 0,
-      status: "aktif",
       role: "admin",
+
       members: newRoom.members.map((m) => ({
         id: m.user.id.toString(),
         nama: m.user.name || "Unknown",
         email: m.user.email,
-        status: "lunas",
-        nominal,
+        avatarUrl: m.user.avatarUrl,
       })),
-      createdAt: newRoom.createdAt.toISOString().split("T")[0],
+
+      createdAt: newRoom.createdAt.toISOString(),
     }
 
     return NextResponse.json(transformed, { status: 201 })

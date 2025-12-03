@@ -84,7 +84,7 @@ export default function GrupDetailPage() {
   const [room, setRoom] = useState<RoomData | null>(null)
   const [loading, setLoading] = useState(true)
   const [currentUserRole, setCurrentUserRole] = useState<"ADMIN" | "MEMBER" | null>(null)
-  const [activeTab, setActiveTab] = useState<"overview" | "anggota">("overview")
+  const [activeTab, setActiveTab] = useState<"overview" | "anggota">("anggota")
   const [selectedInvoice, setSelectedInvoice] = useState<InvoiceData | null>(null)
   const [showPaymentModal, setShowPaymentModal] = useState(false)
   const [showAddMemberModal, setShowAddMemberModal] = useState(false)
@@ -163,7 +163,6 @@ export default function GrupDetailPage() {
   const totalDues = room.dues.length
   const totalPaid = room.invoices.filter((i) => i.status === "PAID").reduce((sum, i) => sum + i.amount, 0)
   const totalPending = room.invoices.filter((i) => i.status !== "PAID").reduce((sum, i) => sum + i.amount, 0)
-
   const recentActivities = room.invoices
     .sort((a, b) => new Date(b.paidDate || b.dueDate).getTime() - new Date(a.paidDate || a.dueDate).getTime())
     .slice(0, 5)
@@ -291,7 +290,6 @@ export default function GrupDetailPage() {
           <ArrowLeft size={20} />
           Kembali
         </Button>
-
         <Card className="bg-white rounded-2xl shadow-lg overflow-hidden border-0 mb-6">
           <div className="h-3 bg-gradient-to-r from-blue-500 to-purple-500" />
           <div className="p-6 md:p-8">
@@ -307,7 +305,6 @@ export default function GrupDetailPage() {
                 </div>
               )}
             </div>
-
             {isAdmin && (
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="bg-blue-50 rounded-lg p-4">
@@ -342,24 +339,7 @@ export default function GrupDetailPage() {
             )}
           </div>
         </Card>
-
         <div className="flex gap-2 mb-6 border-b border-gray-200">
-          <button
-            onClick={() => setActiveTab("overview")}
-            className={`px-4 py-3 font-semibold transition-colors ${
-              activeTab === "overview"
-                ? "text-blue-600 border-b-2 border-blue-600"
-                : "text-gray-600 hover:text-gray-900"
-            }`}
-          >
-            Overview
-          </button>
-          <button
-            onClick={() => router.push(`/dashboard/grup/${roomId}/iuran`)}
-            className="px-4 py-3 font-semibold transition-colors text-gray-600 hover:text-gray-900"
-          >
-            Iuran
-          </button>
           <button
             onClick={() => setActiveTab("anggota")}
             className={`px-4 py-3 font-semibold transition-colors ${
@@ -368,126 +348,13 @@ export default function GrupDetailPage() {
           >
             Anggota
           </button>
+          <button
+            onClick={() => router.push(`/dashboard/grup/${roomId}/iuran`)}
+            className="px-4 py-3 font-semibold transition-colors text-gray-600 hover:text-gray-900"
+          >
+            Iuran
+          </button>
         </div>
-
-        {activeTab === "overview" && (
-          <>
-            {isAdmin ? (
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-2">
-                  <Card className="bg-white rounded-2xl shadow-lg border-0 overflow-hidden">
-                    <div className="p-6 md:p-8">
-                      <h2 className="text-2xl font-bold text-gray-900 mb-6">Aktivitas Terbaru</h2>
-                      <div className="space-y-3">
-                        {recentActivities.map((activity) => (
-                          <div key={activity.id} className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
-                            <div
-                              className={`w-3 h-3 rounded-full ${
-                                activity.status === "PAID"
-                                  ? "bg-green-500"
-                                  : activity.status === "PENDING"
-                                    ? "bg-yellow-500"
-                                    : "bg-red-500"
-                              }`}
-                            />
-                            <div className="flex-1">
-                              <p className="font-semibold text-gray-900">{activity.member.name}</p>
-                              <p className="text-sm text-gray-600">{activity.description || activity.code}</p>
-                            </div>
-                            <div className="text-right">
-                              <p className="font-bold text-gray-900">Rp {activity.amount.toLocaleString("id-ID")}</p>
-                              <p className="text-xs text-gray-600">
-                                {new Date(activity.paidDate || activity.dueDate).toLocaleDateString("id-ID")}
-                              </p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </Card>
-                </div>
-                <Card className="bg-white rounded-2xl shadow-lg border-0 overflow-hidden">
-                  <div className="p-6 md:p-8">
-                    <h3 className="text-xl font-bold text-gray-900 mb-6">Ringkasan</h3>
-                    <div className="space-y-4">
-                      <div className="bg-green-50 rounded-lg p-4">
-                        <p className="text-xs text-gray-600 mb-1">Lunas</p>
-                        <p className="font-bold text-green-600 text-lg">
-                          {room.invoices.filter((i) => i.status === "PAID").length}
-                        </p>
-                      </div>
-                      <div className="bg-yellow-50 rounded-lg p-4">
-                        <p className="text-xs text-gray-600 mb-1">Tertanggung</p>
-                        <p className="font-bold text-yellow-600 text-lg">
-                          {room.invoices.filter((i) => i.status === "PENDING").length}
-                        </p>
-                      </div>
-                      <div className="bg-red-50 rounded-lg p-4">
-                        <p className="text-xs text-gray-600 mb-1">Terlambat</p>
-                        <p className="font-bold text-red-600 text-lg">
-                          {room.invoices.filter((i) => i.status === "OVERDUE").length}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </Card>
-              </div>
-            ) : (
-              <Card className="bg-white rounded-2xl shadow-lg border-0 overflow-hidden">
-                <div className="p-6 md:p-8">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-6">Status Iuran Saya</h2>
-                  <div className="space-y-4">
-                    {room.invoices.map((invoice) => (
-                      <div
-                        key={invoice.id}
-                        className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
-                      >
-                        <div className="flex items-start justify-between mb-3">
-                          <div className="flex-1">
-                            <h3 className="font-bold text-gray-900 text-lg">{invoice.code}</h3>
-                            <p className="text-sm text-gray-600">{invoice.description}</p>
-                          </div>
-                          <span
-                            className={`text-xs font-semibold px-3 py-1 rounded-full ${getStatusColor(invoice.status)}`}
-                          >
-                            {getStatusLabel(invoice.status)}
-                          </span>
-                        </div>
-                        <div className="grid grid-cols-2 gap-3 mb-4">
-                          <div>
-                            <p className="text-xs text-gray-600 mb-1">Nominal</p>
-                            <p className="font-bold text-gray-900">Rp {invoice.amount.toLocaleString("id-ID")}</p>
-                          </div>
-                          <div>
-                            <p className="text-xs text-gray-600 mb-1">Jatuh Tempo</p>
-                            <p className="font-bold text-gray-900">
-                              {new Date(invoice.dueDate).toLocaleDateString("id-ID", {
-                                day: "numeric",
-                                month: "short",
-                              })}
-                            </p>
-                          </div>
-                        </div>
-                        {invoice.status !== "PAID" && (
-                          <Button
-                            onClick={() => {
-                              setSelectedInvoice(invoice)
-                              setShowPaymentModal(true)
-                            }}
-                            className="w-full bg-blue-500 hover:bg-blue-600 text-white"
-                          >
-                            Bayar Sekarang
-                          </Button>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </Card>
-            )}
-          </>
-        )}
-
         {activeTab === "anggota" && (
           <Card className="bg-white rounded-2xl shadow-lg border-0 overflow-hidden">
             <div className="p-6 md:p-8">
@@ -552,7 +419,6 @@ export default function GrupDetailPage() {
             </div>
           </Card>
         )}
-
         {showPaymentModal && selectedInvoice && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
             <Card className="bg-white rounded-2xl shadow-2xl w-full max-w-md border-0">
@@ -600,7 +466,6 @@ export default function GrupDetailPage() {
             </Card>
           </div>
         )}
-
         {showAddMemberModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
             <Card className="bg-white rounded-2xl shadow-2xl w-full max-w-md border-0">

@@ -11,17 +11,23 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
   const token = request.cookies.get("auth_token")?.value || null
 
-  // DECODE PAYLOAD TOKEn (tanpa verify signature)
+  // --- DEBUGGING LOG (Cek di terminal VSCode) ---
+  // console.log(`[Middleware] Processing: ${pathname}`)
+  // ---------------------------------------------
+
+  // DECODE PAYLOAD TOKEN
   let payload: any = null
   if (token) {
     try {
+      // Decode base64 token part
       payload = JSON.parse(atob(token.split(".")[1]))
     } catch (e) {
+      console.error("[Middleware] Error decoding token:", e)
       payload = null
     }
   }
 
-  // 1️⃣ Jika akses halaman public (login, register, home) dan token valid → redirect dashboard
+  // 1️⃣ Jika akses halaman public dan token valid → redirect dashboard
   const accessingAuthPage = AUTH_PAGES.some((route) => pathname === route)
   if (accessingAuthPage && payload) {
     return NextResponse.redirect(new URL("/dashboard", request.url))
@@ -33,12 +39,35 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/login", request.url))
   }
 
-  // lanjut jika semuanya ok
-  return NextResponse.next()
+  // ============================================================
+  // PERBAIKAN UTAMA: Inject Header x-user-id ke Request
+  // ============================================================
+  
+  const requestHeaders = new Headers(request.headers)
+
+  if (payload) {
+    // Pastikan key-nya benar ('id' atau 'userId' atau 'sub') sesuai isi token kamu
+    const userId = payload.id || payload.userId || payload.sub
+    
+    if (userId) {
+      // console.log(`[Middleware] Injecting x-user-id: ${userId}`) // Debugging
+      requestHeaders.set("x-user-id", String(userId))
+    } else {
+      console.warn("[Middleware] Token valid tapi tidak ada field ID/userId")
+    }
+  }
+
+  // Lanjut dengan membawa headers yang sudah dimodifikasi
+  return NextResponse.next({
+    request: {
+      headers: requestHeaders,
+    },
+  })
 }
 
 export const config = {
   matcher: [
+    // Matcher ini akan menangkap semua route termasuk API
     "/((?!_next/static|_next/image|favicon.ico).*)",
   ],
 }

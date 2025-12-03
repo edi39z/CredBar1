@@ -1,84 +1,68 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 
-export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string; dueId: string }> }) {
-  try {
-    const { id, dueId } = await params
-    const roomId = Number.parseInt(id)
-    const dueIdInt = Number.parseInt(dueId)
-
-    if (Number.isNaN(roomId) || Number.isNaN(dueIdInt)) {
-      return NextResponse.json({ success: false, message: "Invalid room ID or due ID" }, { status: 400 })
-    }
-
-    const due = await prisma.due.findUnique({
-      where: { id: dueIdInt },
-      include: {
-        invoices: {
-          include: {
-            member: true,
-            payments: true,
-          },
-        },
-        room: true,
-      },
-    })
-
-    if (!due || due.roomId !== roomId) {
-      return NextResponse.json({ success: false, message: "Due not found" }, { status: 404 })
-    }
-
-    return NextResponse.json({
-      success: true,
-      data: due,
-    })
-  } catch (error) {
-    console.error("Error fetching due:", error)
-    return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 })
-  }
+// ====== Helper untuk BigInt serialization ======
+function safeJson(data: any) {
+  return JSON.parse(JSON.stringify(data, (_, v) => (typeof v === "bigint" ? v.toString() : v)))
 }
 
-export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string; dueId: string }> }) {
+// =============================
+// PUT /api/rooms/[id]/dues/[dueId]
+// =============================
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string; dueId: string }> }) {
   try {
     const { id, dueId } = await params
-    const roomId = Number.parseInt(id)
-    const dueIdInt = Number.parseInt(dueId)
-    const body = await request.json()
+    const roomId = Number(id)
+    const dueIdNum = Number(dueId)
 
-    if (Number.isNaN(roomId) || Number.isNaN(dueIdInt)) {
-      return NextResponse.json({ success: false, message: "Invalid room ID or due ID" }, { status: 400 })
+    if (isNaN(roomId) || isNaN(dueIdNum)) {
+      return NextResponse.json({ success: false, message: "Invalid IDs" }, { status: 400 })
     }
 
-    // Verifikasi due ada dan milik room
+    const body = await req.json()
+
     const due = await prisma.due.findUnique({
-      where: { id: dueIdInt },
+      where: { id: dueIdNum },
     })
 
     if (!due || due.roomId !== roomId) {
       return NextResponse.json({ success: false, message: "Due not found" }, { status: 404 })
     }
 
-    // Update due
+    let amountBigInt: bigint
+    try {
+      amountBigInt = BigInt(body.amount)
+    } catch {
+      return NextResponse.json({ success: false, message: "Invalid amount format" }, { status: 400 })
+    }
+
     const updatedDue = await prisma.due.update({
-      where: { id: dueIdInt },
+      where: { id: dueIdNum },
       data: {
-        name: body.name || due.name,
-        description: body.description !== undefined ? body.description : due.description,
-        amount: body.amount ? Number.parseInt(body.amount) : due.amount,
-        isRecurring: body.isRecurring !== undefined ? body.isRecurring : due.isRecurring,
-        frequency: body.frequency || due.frequency,
-        interval: body.interval || due.interval,
-        isActive: body.isActive !== undefined ? body.isActive : due.isActive,
-      },
-      include: {
-        invoices: true,
+        name: body.name ?? due.name,
+        description: body.description ?? due.description,
+        amount: amountBigInt,
+        isRecurring: body.isRecurring ?? due.isRecurring,
+        frequency: body.isRecurring ? body.frequency || due.frequency : null,
+        interval: body.isRecurring ? body.interval || due.interval : null,
+        startDate: body.startDate ? new Date(body.startDate) : due.startDate,
+        nextDueDate: body.nextDueDate ? new Date(body.nextDueDate) : due.nextDueDate,
       },
     })
+
+    if (body.amount) {
+      await prisma.invoice.updateMany({
+        where: { dueId: dueIdNum },
+        data: {
+          amount: amountBigInt,
+        },
+      })
+    }
 
     return NextResponse.json({
       success: true,
       message: "Due updated successfully",
-      data: updatedDue,
+      data: safeJson(updatedDue),
     })
   } catch (error) {
     console.error("Error updating due:", error)
@@ -86,28 +70,33 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string; dueId: string }> }) {
+// =============================
+// DELETE /api/rooms/[id]/dues/[dueId]
+// =============================
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string; dueId: string }> }) {
   try {
     const { id, dueId } = await params
-    const roomId = Number.parseInt(id)
-    const dueIdInt = Number.parseInt(dueId)
+    const roomId = Number(id)
+    const dueIdNum = Number(dueId)
 
-    if (Number.isNaN(roomId) || Number.isNaN(dueIdInt)) {
-      return NextResponse.json({ success: false, message: "Invalid room ID or due ID" }, { status: 400 })
+    if (isNaN(roomId) || isNaN(dueIdNum)) {
+      return NextResponse.json({ success: false, message: "Invalid IDs" }, { status: 400 })
     }
 
-    // Verifikasi due ada
     const due = await prisma.due.findUnique({
-      where: { id: dueIdInt },
+      where: { id: dueIdNum },
     })
 
     if (!due || due.roomId !== roomId) {
       return NextResponse.json({ success: false, message: "Due not found" }, { status: 404 })
     }
 
-    // Hapus due (invoices akan terhapus otomatis karena onDelete: Cascade)
+    await prisma.invoice.deleteMany({
+      where: { dueId: dueIdNum },
+    })
+
     await prisma.due.delete({
-      where: { id: dueIdInt },
+      where: { id: dueIdNum },
     })
 
     return NextResponse.json({

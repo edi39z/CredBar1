@@ -2,20 +2,35 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
+// Konversi BigInt → Number untuk JSON
+function toSafeJSON(obj: any) {
+  return JSON.parse(
+    JSON.stringify(obj, (_, value) =>
+      typeof value === "bigint" ? Number(value) : value
+    )
+  );
+}
+
 export async function GET() {
   try {
+    // =====================================================
     // 1) Total rooms
+    // =====================================================
     const totalGroups = await prisma.room.count();
 
-    // 2) Unpaid amount (PENDING invoices)
+    // =====================================================
+    // 2) Total unpaid invoices
+    // =====================================================
     const unpaid = await prisma.invoice.aggregate({
       _sum: { amount: true },
       where: { status: "PENDING" },
     });
 
-    // 3) recent payments (last 30 days) grouped by day for progress chart (simple)
+    // =====================================================
+    // 3) Payments in last 30 days (progress chart)
+    // =====================================================
     const since = new Date();
-    since.setDate(since.getDate() - 29); // 30 days window
+    since.setDate(since.getDate() - 29); // 30-day window
 
     const payments = await prisma.payment.findMany({
       where: { paidAt: { gte: since } },
@@ -35,7 +50,6 @@ export async function GET() {
       orderBy: { paidAt: "asc" },
     });
 
-    // map to simple daily series
     const paymentProgressData = payments.map((p) => ({
       id: p.id,
       date: p.paidAt,
@@ -45,16 +59,26 @@ export async function GET() {
       memberName: p.invoice.member?.name ?? null,
     }));
 
-    // 4) breakdown by Due
+    // =====================================================
+    // 4) Due breakdown
+    // =====================================================
     const dues = await prisma.due.findMany({
       select: { id: true, name: true, amount: true, roomId: true, isActive: true },
       orderBy: { amount: "desc" },
       take: 50,
     });
 
-    const breakdown = dues.map((d) => ({ id: d.id, name: d.name, amount: d.amount, roomId: d.roomId, isActive: d.isActive }));
+    const breakdown = dues.map((d) => ({
+      id: d.id,
+      name: d.name,
+      amount: d.amount,
+      roomId: d.roomId,
+      isActive: d.isActive,
+    }));
 
-    // 5) transaction history (latest 10)
+    // =====================================================
+    // 5) Transaction history (latest 10)
+    // =====================================================
     const transactions = await prisma.payment.findMany({
       orderBy: { paidAt: "desc" },
       take: 10,
@@ -83,13 +107,19 @@ export async function GET() {
       invoiceCode: t.invoice.code,
     }));
 
-    return NextResponse.json({
-      totalGroups,
-      unpaidAmount: unpaid._sum.amount ?? 0,
-      paymentProgressData,
-      breakdown,
-      transactions: mappedTx,
-    });
+    // =====================================================
+    // Send response (protected from BigInt errors)
+    // =====================================================
+    return NextResponse.json(
+      toSafeJSON({
+        totalGroups,
+        unpaidAmount: unpaid._sum.amount ?? 0,
+        paymentProgressData,
+        breakdown,
+        transactions: mappedTx,
+      })
+    );
+
   } catch (err) {
     console.error("Dashboard error:", err);
     return NextResponse.json({ error: "Server error" }, { status: 500 });

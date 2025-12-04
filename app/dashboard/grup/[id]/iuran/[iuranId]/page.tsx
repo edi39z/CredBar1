@@ -42,9 +42,9 @@ export default function IuranDetailPage() {
   const [showPaymentModal, setShowPaymentModal] = useState(false)
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null)
   
-  // State Payment Form (Hanya Method & Note, Amount diambil dari invoice)
+  // State Payment Form
   const [paymentForm, setPaymentForm] = useState({
-    amount: "", // State ini diabaikan saat submit, hanya visual jika perlu
+    amount: "",
     method: "TRANSFER",
     note: "",
   })
@@ -139,7 +139,6 @@ export default function IuranDetailPage() {
     }
   }, [roomId, iuranId])
 
-  // Hitung Member ID milik user yang login
   useEffect(() => {
     if (currentUserId && groupMembers.length > 0) {
         const myMember = groupMembers.find(m => m.userId === currentUserId)
@@ -165,21 +164,17 @@ export default function IuranDetailPage() {
 
   const isAdmin = userRole === "admin"
 
-  // --- LOGIC PERHITUNGAN STATISTIK (SAFE NUMBER) ---
   const calculateStats = () => {
     if (!due) return { totalTerkumpul: 0, totalBelumBayar: 0, lunas: 0, menunggu: 0, belumBayar: 0, progress: 0, totalTagihanDialokasikan: 0 }
 
     const invoices = due.invoices || []
     
-    // Total yang sudah dialokasikan ke member
     const totalTagihanDialokasikan = invoices.reduce((sum, inv) => sum + Number(inv.amount), 0)
 
-    // Total Uang Masuk (Hanya status PAID)
     const totalTerkumpul = invoices
       .filter((inv) => inv.status === "PAID")
       .reduce((sum, inv) => sum + Number(inv.amount), 0)
 
-    // Total Belum Masuk (Selain PAID)
     const totalBelumBayar = invoices
       .filter((inv) => inv.status !== "PAID")
       .reduce((sum, inv) => sum + Number(inv.amount), 0)
@@ -196,8 +191,6 @@ export default function IuranDetailPage() {
   const stats = calculateStats()
 
   // --- HANDLERS ---
-
-  // 1. ADD MEMBER (Dengan Validasi Limit Total)
   const handleAddMember = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!selectedMemberId) {
@@ -212,7 +205,6 @@ export default function IuranDetailPage() {
       return
     }
 
-    // Validasi: Total tagihan tidak boleh melebihi target iuran
     if (due) {
         const targetIuran = Number(due.amount)
         const sisaTarget = targetIuran - stats.totalTagihanDialokasikan
@@ -252,14 +244,12 @@ export default function IuranDetailPage() {
     }
   }
 
-  // 2. UPDATE INVOICE AMOUNT (Admin Edit Nominal)
   const handleUpdateInvoiceAmount = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!selectedInvoiceId || !editInvoiceAmount) return
 
     const nominalBaru = Number(editInvoiceAmount)
 
-    // Validasi Update Limit Total
     if (due) {
         const oldInvoice = due.invoices.find(inv => inv.id === selectedInvoiceId)
         const oldAmount = oldInvoice ? Number(oldInvoice.amount) : 0
@@ -296,7 +286,6 @@ export default function IuranDetailPage() {
     }
   }
 
-  // 3. PAYMENT (Fixed: Force Full Amount)
   const handlePayment = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!selectedInvoice || !due) return
@@ -306,7 +295,7 @@ export default function IuranDetailPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          amount: Number(selectedInvoice.amount), // <--- PAKAI JUMLAH TAGIHAN ASLI
+          amount: Number(selectedInvoice.amount),
           method: paymentForm.method,
           note: paymentForm.note,
         }),
@@ -349,7 +338,6 @@ export default function IuranDetailPage() {
     }
   }
 
-  // Handler dummy untuk fitur yang dinonaktifkan
   const handleInviteMember = async (e: React.FormEvent) => {
     e.preventDefault()
     alert("Gunakan tombol 'Tambah Anggota' di atas untuk menambah tagihan.")
@@ -450,17 +438,16 @@ export default function IuranDetailPage() {
           Kembali
         </Button>
 
+        {/* PERBAIKAN DI SINI: MENGHAPUS roomId */}
         <HeaderCard
           due={due}
-          roomId={roomId}
           isAdmin={isAdmin}
           totalTerkumpul={stats.totalTerkumpul}
           totalBelumBayar={stats.totalBelumBayar}
           onAddMember={() => setShowAddMemberModal(true)}
           onEdit={() => setShowEditModal(true)}
           onDelete={handleDeleteIuran}
-          onDelegate={() => {}} // Fungsi kosong
-        />
+          onDelegate={() => { } } groupName={""}        />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
           <ProgressCard
@@ -473,13 +460,12 @@ export default function IuranDetailPage() {
           <InfoCard due={due} />
         </div>
 
-        {/* ADMIN VIEW */}
         {isAdmin && (
           <InvoiceList
             due={due}
             isAdmin={isAdmin}
             currentMemberId={String(currentUserId)}
-            onOpenInviteModal={() => {}} // Tombol "+" sudah dihilangkan di komponen
+            onOpenInviteModal={() => {}} 
             onPay={(inv) => {
               setSelectedInvoice(inv)
               setShowPaymentModal(true)
@@ -497,7 +483,6 @@ export default function IuranDetailPage() {
           />
         )}
 
-        {/* MEMBER VIEW */}
         {!isAdmin && (
           <MemberDetail
             due={due}

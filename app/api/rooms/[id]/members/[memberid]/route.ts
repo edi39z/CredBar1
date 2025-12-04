@@ -3,12 +3,19 @@ import { PrismaClient } from "@prisma/client"
 
 const prisma = new PrismaClient()
 
+// ==================================================
+// PUT: Update Role Member
+// ==================================================
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string; memberid: string } }
+  // 1. Ubah tipe params menjadi Promise
+  { params }: { params: Promise<{ id: string; memberid: string }> }
 ) {
   try {
-    const memberId = Number(params.memberid)
+    // 2. Lakukan await pada params sebelum mengambil properti
+    const { memberid } = await params
+    const memberId = Number(memberid)
+
     const body = await request.json()
     const { role } = body
 
@@ -57,13 +64,18 @@ export async function PUT(
   }
 }
 
-
+// ==================================================
+// DELETE: Hapus Member
+// ==================================================
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string; memberid: string } }
+  // 1. Ubah tipe params menjadi Promise
+  { params }: { params: Promise<{ id: string; memberid: string }> }
 ) {
   try {
-    const memberId = Number(params.memberid)
+    // 2. Lakukan await pada params
+    const { memberid } = await params
+    const memberId = Number(memberid)
 
     if (!memberId) {
       return NextResponse.json({ success: false, error: "memberId is required" }, { status: 400 })

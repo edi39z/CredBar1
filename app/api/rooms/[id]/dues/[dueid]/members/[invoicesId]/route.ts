@@ -3,12 +3,19 @@ import { prisma } from "@/lib/prisma"
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string; dueId: string; invoiceId: string }> },
+  // 1. Ubah 'invoiceId' menjadi 'invoicesId' sesuai nama folder Anda
+  { params }: { params: Promise<{ id: string; dueId: string; invoicesId: string }> },
 ) {
   try {
-    const { id, dueId, invoiceId } = await params
+    // 2. Ambil 'invoicesId' dari params yang sudah di-await
+    const { id, dueId, invoicesId } = await params
+    
     const roomId = Number(id)
     const dueIdNum = Number(dueId)
+    
+    // 3. Mapping 'invoicesId' (dari URL) ke variabel 'invoiceId' (untuk logic database)
+    // agar Anda tidak perlu mengubah semua kode di bawahnya.
+    const invoiceId = invoicesId 
 
     if (isNaN(roomId) || isNaN(dueIdNum)) {
       return NextResponse.json({ success: false, message: "Invalid IDs" }, { status: 400 })
@@ -28,6 +35,7 @@ export async function DELETE(
       where: { id: invoiceId },
     })
 
+    // Pastikan konversi tipe data dueIdNum sesuai dengan tipe di database (Int vs String)
     if (!invoice || invoice.dueId !== dueIdNum) {
       return NextResponse.json({ success: false, message: "Invoice not found" }, { status: 404 })
     }

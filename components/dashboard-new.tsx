@@ -12,11 +12,41 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 
 const COLORS = ["#3A86FF", "#A7F3D0", "#FF6B6B"]
 
+// 1. DEFINISIKAN INTERFACE TIPE DATA
+interface Transaction {
+  id: string | number
+  name: string
+  group: string
+  amount: number
+  date: string
+  status: string
+}
+
+interface Breakdown {
+  name: string
+  amount: number
+}
+
+interface PaymentProgress {
+  date: string
+  paid: number
+  pending: number
+}
+
+interface DashboardData {
+  totalGroups: number
+  unpaidAmount: number
+  paymentProgressData: PaymentProgress[]
+  breakdown: Breakdown[]
+  transactions: Transaction[]
+}
+
 export function DashboardNew() {
     const [timeRange, setTimeRange] = useState("today")
     const [loading, setLoading] = useState(true)
 
-    const [data, setData] = useState({
+    // 2. GUNAKAN INTERFACE PADA USESTATE
+    const [data, setData] = useState<DashboardData>({
         totalGroups: 0,
         unpaidAmount: 0,
         paymentProgressData: [],
@@ -134,6 +164,7 @@ export function DashboardNew() {
 
                             <StatCard
                                 title="Total Terkumpul"
+                                // TypeScript sekarang tahu bahwa 'x' memiliki properti 'amount'
                                 value={`Rp ${(data.transactions.reduce((t, x) => t + x.amount, 0)).toLocaleString("id-ID")}`}
                                 icon={<Plus className="h-5 w-5" />}
                                 trend="↑"

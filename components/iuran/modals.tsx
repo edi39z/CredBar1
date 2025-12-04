@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input"
 import { Upload, X } from "lucide-react"
 import { Invoice, RoomMember } from "./shared"
 
-// --- Payment Modal ---
+// --- Payment Modal (FIXED: Tampilan Nominal Read-Only) ---
 export function PaymentModal({
   show,
   onClose,
@@ -29,19 +29,16 @@ export function PaymentModal({
       <Card className="bg-white rounded-2xl shadow-2xl w-full max-w-md border-0">
         <div className="p-6">
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Pembayaran Iuran</h2>
-          <p className="text-gray-600 mb-6">{selectedInvoice.description || dueName}</p>
+          <p className="text-gray-600 mb-6">{dueName}</p>
 
           <form onSubmit={onSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Nominal Pembayaran (Rp)</label>
-              <Input
-                type="number"
-                placeholder={selectedInvoice.amount.toString()}
-                value={paymentForm.amount}
-                onChange={(e) => setPaymentForm({ ...paymentForm, amount: e.target.value })}
-                required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+            {/* TAMPILAN NOMINAL (READ ONLY) */}
+            <div className="bg-blue-50 p-4 rounded-lg text-center border border-blue-100">
+              <p className="text-sm text-gray-600 mb-1">Total yang harus dibayar</p>
+              <p className="text-3xl font-bold text-blue-700">
+                Rp {Number(selectedInvoice.amount).toLocaleString("id-ID")}
+              </p>
+              <p className="text-xs text-blue-500 mt-1">*Pembayaran harus full (tidak bisa dicicil)</p>
             </div>
 
             <div>
@@ -50,7 +47,7 @@ export function PaymentModal({
                 value={paymentForm.method}
                 onChange={(e) => setPaymentForm({ ...paymentForm, method: e.target.value })}
                 required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
               >
                 <option value="TRANSFER">Transfer Bank</option>
                 <option value="QRIS">QRIS</option>
@@ -62,7 +59,7 @@ export function PaymentModal({
               <label className="block text-sm font-semibold text-gray-700 mb-2">Catatan (Opsional)</label>
               <Input
                 type="text"
-                placeholder="Contoh: Sudah transfer"
+                placeholder="Contoh: Sudah transfer ke BCA"
                 value={paymentForm.note}
                 onChange={(e) => setPaymentForm({ ...paymentForm, note: e.target.value })}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -96,7 +93,7 @@ export function PaymentModal({
   )
 }
 
-// --- Invite / New Invoice Modal ---
+// --- Invite Modal (Tetap ada untuk kompatibilitas import) ---
 export function InviteModal({
   show,
   onClose,
@@ -111,48 +108,13 @@ export function InviteModal({
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <Card className="bg-white rounded-2xl shadow-2xl w-full max-w-md border-0">
         <div className="p-6">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Tambah Tagihan Baru</h2>
-          <p className="text-gray-600 mb-6">Masukkan detail tagihan baru</p>
-          <form onSubmit={onSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Nama Anggota / ID</label>
-              <Input
-                type="text"
-                placeholder="Nama atau ID Anggota"
-                required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Nominal Tagihan (Rp)</label>
-              <Input
-                type="number"
-                placeholder="Jumlah tagihan"
-                required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Jatuh Tempo</label>
-              <Input
-                type="date"
-                required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <div className="flex gap-3 pt-4">
-              <Button
-                type="button"
-                onClick={onClose}
-                className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-900"
-              >
-                Batal
-              </Button>
-              <Button type="submit" className="flex-1 bg-blue-500 hover:bg-blue-600 text-white">
-                Buat Tagihan
-              </Button>
-            </div>
-          </form>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Info</h2>
+          <p className="text-gray-600 mb-6">Fitur ini telah dipindahkan.</p>
+          <div className="flex gap-3 pt-4">
+            <Button onClick={onClose} className="w-full bg-blue-500 hover:bg-blue-600 text-white">
+              Tutup
+            </Button>
+          </div>
         </div>
       </Card>
     </div>
@@ -186,7 +148,7 @@ export function MessageModal({
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">Pesan</label>
               <textarea
-                placeholder="Tulis pesan atau invoice..."
+                placeholder="Tulis pesan pengingat..."
                 value={messageForm.message}
                 onChange={(e) => setMessageForm({ message: e.target.value })}
                 required
@@ -213,7 +175,7 @@ export function MessageModal({
   )
 }
 
-// --- Edit Modal ---
+// --- Edit Iuran Modal ---
 export function EditModal({
   show,
   onClose,
@@ -259,7 +221,7 @@ export function EditModal({
               />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Nominal Total (Rp)</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Target Total (Rp)</label>
               <Input
                 type="number"
                 value={editForm.amount}
@@ -273,7 +235,7 @@ export function EditModal({
               <select
                 value={editForm.frequency}
                 onChange={(e) => setEditForm({ ...editForm, frequency: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
               >
                 <option value="">Pilih Frekuensi</option>
                 <option value="DAILY">Harian</option>
@@ -333,7 +295,7 @@ export function EditModal({
   )
 }
 
-// --- Delegate Modal ---
+// --- Delegate Modal (Tetap ada untuk kompatibilitas import) ---
 export function DelegateModal({
   show,
   onClose,
@@ -344,60 +306,18 @@ export function DelegateModal({
   onSubmit: () => void
 }) {
   if (!show) return null
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <Card className="bg-white rounded-2xl shadow-2xl w-full max-w-md border-0">
-        <div className="p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">Delegasi Status Admin</h2>
-            <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
-              <X size={20} />
-            </button>
-          </div>
-          <form onSubmit={onSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Pilih Anggota</label>
-              <select
-                required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="">-- Pilih Anggota --</option>
-              </select>
-            </div>
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-              <p className="text-xs text-yellow-800">
-                Perhatian: Anda akan kehilangan status admin setelah melimpahkan ke anggota lain.
-              </p>
-            </div>
-            <div className="flex gap-3 pt-4">
-              <Button
-                type="button"
-                onClick={onClose}
-                className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-900"
-              >
-                Batal
-              </Button>
-              <Button type="submit" className="flex-1 bg-purple-500 hover:bg-purple-600 text-white">
-                Delegasi
-              </Button>
-            </div>
-          </form>
-        </div>
-      </Card>
-    </div>
-  )
+  return null // Render nothing jika dipanggil
 }
 
-// --- Add Member Modal ---
-// Update Props untuk menerima amount dan setAmount
+// --- Add Member Modal (UPDATED: Ada input nominal) ---
 export function AddMemberModal({
   show,
   onClose,
   groupMembers,
   selectedMemberId,
   setSelectedMemberId,
-  amount,             // <--- Tambahan
-  setAmount,          // <--- Tambahan
+  amount,
+  setAmount,
   isAddingMember,
   onSubmit,
 }: {
@@ -406,8 +326,8 @@ export function AddMemberModal({
   groupMembers: RoomMember[]
   selectedMemberId: string
   setSelectedMemberId: (id: string) => void
-  amount: string      // <--- Tambahan
-  setAmount: (val: string) => void // <--- Tambahan
+  amount: string
+  setAmount: (val: string) => void
   isAddingMember: boolean
   onSubmit: (e: React.FormEvent) => void
 }) {
@@ -429,9 +349,8 @@ export function AddMemberModal({
             </div>
           ) : (
             <form onSubmit={onSubmit} className="space-y-4">
-              {/* INPUT PILIH MEMBER */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-3">Pilih Anggota</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-3">Pilih Anggota dari Grup</label>
                 <div className="space-y-2 max-h-60 overflow-y-auto border rounded-lg p-2">
                   {groupMembers.map((member) => (
                     <div
@@ -450,7 +369,7 @@ export function AddMemberModal({
                 </div>
               </div>
 
-              {/* INPUT NOMINAL TAGIHAN (MANUAL) */}
+              {/* INPUT NOMINAL MANUAL */}
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">Nominal Tagihan (Rp)</label>
                 <Input
@@ -461,9 +380,7 @@ export function AddMemberModal({
                   required
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
-                <p className="text-xs text-gray-500 mt-1">
-                  Nominal ini akan ditagihkan khusus ke anggota yang dipilih.
-                </p>
+                <p className="text-xs text-gray-500 mt-1">Nominal ini akan ditagihkan ke anggota yang dipilih.</p>
               </div>
 
               <div className="flex gap-3 pt-4">
@@ -479,7 +396,7 @@ export function AddMemberModal({
                   disabled={!selectedMemberId || !amount || isAddingMember}
                   className="flex-1 bg-green-500 hover:bg-green-600 text-white disabled:opacity-50"
                 >
-                  {isAddingMember ? "Menambahkan..." : "Simpan"}
+                  {isAddingMember ? "Menambahkan..." : "Tambah Anggota"}
                 </Button>
               </div>
             </form>
@@ -490,6 +407,7 @@ export function AddMemberModal({
   )
 }
 
+// --- NEW: Edit Invoice Amount Modal ---
 export function EditInvoiceAmountModal({
   show,
   onClose,

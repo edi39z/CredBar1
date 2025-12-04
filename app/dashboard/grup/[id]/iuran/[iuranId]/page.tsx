@@ -7,7 +7,7 @@ import { ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 
-// Import components (Pastikan path import sesuai struktur folder Anda)
+// Import components
 import { Due, Invoice, RoomMember } from "@/components/iuran/shared"
 import { HeaderCard } from "@/components/iuran/header-card"
 import { ProgressCard } from "@/components/iuran/progress-card"
@@ -21,7 +21,7 @@ import {
   EditModal,
   DelegateModal,
   AddMemberModal,
-  EditInvoiceAmountModal, // <--- Import modal baru
+  EditInvoiceAmountModal,
 } from "@/components/iuran/modals"
 
 export default function IuranDetailPage() {
@@ -41,8 +41,10 @@ export default function IuranDetailPage() {
   // State UI
   const [showPaymentModal, setShowPaymentModal] = useState(false)
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null)
+  
+  // State Payment Form (Hanya Method & Note, Amount diambil dari invoice)
   const [paymentForm, setPaymentForm] = useState({
-    amount: "",
+    amount: "", // State ini diabaikan saat submit, hanya visual jika perlu
     method: "TRANSFER",
     note: "",
   })
@@ -163,17 +165,62 @@ export default function IuranDetailPage() {
 
   const isAdmin = userRole === "admin"
 
+  // --- LOGIC PERHITUNGAN STATISTIK (SAFE NUMBER) ---
+  const calculateStats = () => {
+    if (!due) return { totalTerkumpul: 0, totalBelumBayar: 0, lunas: 0, menunggu: 0, belumBayar: 0, progress: 0, totalTagihanDialokasikan: 0 }
+
+    const invoices = due.invoices || []
+    
+    // Total yang sudah dialokasikan ke member
+    const totalTagihanDialokasikan = invoices.reduce((sum, inv) => sum + Number(inv.amount), 0)
+
+    // Total Uang Masuk (Hanya status PAID)
+    const totalTerkumpul = invoices
+      .filter((inv) => inv.status === "PAID")
+      .reduce((sum, inv) => sum + Number(inv.amount), 0)
+
+    // Total Belum Masuk (Selain PAID)
+    const totalBelumBayar = invoices
+      .filter((inv) => inv.status !== "PAID")
+      .reduce((sum, inv) => sum + Number(inv.amount), 0)
+
+    const lunas = invoices.filter((inv) => inv.status === "PAID").length
+    const menunggu = invoices.filter((inv) => inv.status === "PENDING").length
+    const belumBayar = invoices.filter((inv) => inv.status === "OVERDUE" || inv.status === "DRAFT").length
+    
+    const progress = invoices.length > 0 ? (lunas / invoices.length) * 100 : 0
+
+    return { totalTerkumpul, totalBelumBayar, lunas, menunggu, belumBayar, progress, totalTagihanDialokasikan }
+  }
+
+  const stats = calculateStats()
+
   // --- HANDLERS ---
+
+  // 1. ADD MEMBER (Dengan Validasi Limit Total)
   const handleAddMember = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!selectedMemberId) {
       alert("Pilih anggota terlebih dahulu")
       return
     }
-    // Validasi Nominal
-    if (!addMemberAmount || Number(addMemberAmount) <= 0) {
+    
+    const nominalBaru = Number(addMemberAmount)
+    
+    if (!addMemberAmount || nominalBaru <= 0) {
       alert("Masukkan nominal tagihan yang valid")
       return
+    }
+
+    // Validasi: Total tagihan tidak boleh melebihi target iuran
+    if (due) {
+        const targetIuran = Number(due.amount)
+        const sisaTarget = targetIuran - stats.totalTagihanDialokasikan
+
+        if (nominalBaru > sisaTarget) {
+            alert(`Gagal! Total tagihan melebihi target iuran.\n\nTarget: Rp ${targetIuran.toLocaleString()}\nSisa Kuota: Rp ${sisaTarget.toLocaleString()}`)
+            return
+        }
     }
 
     setIsAddingMember(true)
@@ -183,7 +230,7 @@ export default function IuranDetailPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
             memberId: Number(selectedMemberId),
-            amount: Number(addMemberAmount) 
+            amount: nominalBaru
         }),
       })
 
@@ -205,21 +252,38 @@ export default function IuranDetailPage() {
     }
   }
 
+  // 2. UPDATE INVOICE AMOUNT (Admin Edit Nominal)
   const handleUpdateInvoiceAmount = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!selectedInvoiceId || !editInvoiceAmount) return
+
+    const nominalBaru = Number(editInvoiceAmount)
+
+    // Validasi Update Limit Total
+    if (due) {
+        const oldInvoice = due.invoices.find(inv => inv.id === selectedInvoiceId)
+        const oldAmount = oldInvoice ? Number(oldInvoice.amount) : 0
+        
+        const targetIuran = Number(due.amount)
+        const totalTanpaInvoiceIni = stats.totalTagihanDialokasikan - oldAmount
+        
+        if ((totalTanpaInvoiceIni + nominalBaru) > targetIuran) {
+             alert(`Gagal! Total tagihan melebihi target iuran Rp ${targetIuran.toLocaleString()}`)
+             return
+        }
+    }
 
     try {
       const response = await fetch(`/api/rooms/${roomId}/dues/${iuranId}/invoices/${selectedInvoiceId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount: Number(editInvoiceAmount) }),
+        body: JSON.stringify({ amount: nominalBaru }),
       })
 
       const result = await response.json()
       if (result.success) {
         alert("Nominal tagihan berhasil diperbarui")
-        await refetchDue() // Refresh data
+        await refetchDue() 
         setShowEditAmountModal(false)
         setEditInvoiceAmount("")
         setSelectedInvoiceId(null)
@@ -232,6 +296,7 @@ export default function IuranDetailPage() {
     }
   }
 
+  // 3. PAYMENT (Fixed: Force Full Amount)
   const handlePayment = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!selectedInvoice || !due) return
@@ -241,7 +306,7 @@ export default function IuranDetailPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          amount: Number.parseFloat(paymentForm.amount),
+          amount: Number(selectedInvoice.amount), // <--- PAKAI JUMLAH TAGIHAN ASLI
           method: paymentForm.method,
           note: paymentForm.note,
         }),
@@ -284,6 +349,7 @@ export default function IuranDetailPage() {
     }
   }
 
+  // Handler dummy untuk fitur yang dinonaktifkan
   const handleInviteMember = async (e: React.FormEvent) => {
     e.preventDefault()
     alert("Gunakan tombol 'Tambah Anggota' di atas untuk menambah tagihan.")
@@ -373,15 +439,6 @@ export default function IuranDetailPage() {
     )
   }
 
-  const totalTerkumpul = due.invoices.filter((inv) => inv.status === "PAID").reduce((sum, inv) => sum + inv.amount, 0)
-  const totalBelumBayar = due.invoices
-    .filter((inv) => inv.status !== "PAID")
-    .reduce((sum, inv) => sum + inv.amount, 0)
-  const lunas = due.invoices.filter((inv) => inv.status === "PAID").length
-  const menunggu = due.invoices.filter((inv) => inv.status === "PENDING").length
-  const belumBayar = due.invoices.filter((inv) => inv.status === "OVERDUE" || inv.status === "DRAFT").length
-  const progress = due.invoices.length > 0 ? (lunas / due.invoices.length) * 100 : 0
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
@@ -397,37 +454,37 @@ export default function IuranDetailPage() {
           due={due}
           roomId={roomId}
           isAdmin={isAdmin}
-          totalTerkumpul={totalTerkumpul}
-          totalBelumBayar={totalBelumBayar}
+          totalTerkumpul={stats.totalTerkumpul}
+          totalBelumBayar={stats.totalBelumBayar}
           onAddMember={() => setShowAddMemberModal(true)}
           onEdit={() => setShowEditModal(true)}
           onDelete={handleDeleteIuran}
-          onDelegate={() => setShowDelegateModal(true)}
+          onDelegate={() => {}} // Fungsi kosong
         />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
           <ProgressCard
-            progress={progress}
-            lunas={lunas}
-            menunggu={menunggu}
-            belumBayar={belumBayar}
+            progress={stats.progress}
+            lunas={stats.lunas}
+            menunggu={stats.menunggu}
+            belumBayar={stats.belumBayar}
             due={due}
           />
           <InfoCard due={due} />
         </div>
 
-        {/* ADMIN VIEW: Lihat Semua Tagihan */}
+        {/* ADMIN VIEW */}
         {isAdmin && (
           <InvoiceList
             due={due}
             isAdmin={isAdmin}
-            currentMemberId={currentMemberId} // Pass ID Member untuk cek kepemilikan tagihan
-            onOpenInviteModal={() => setShowInviteModal(true)}
+            currentMemberId={String(currentUserId)}
+            onOpenInviteModal={() => {}} // Tombol "+" sudah dihilangkan di komponen
             onPay={(inv) => {
               setSelectedInvoice(inv)
               setShowPaymentModal(true)
             }}
-            onConfirm={(id) => handleConfirmPayment(id)}
+            onConfirm={handleConfirmPayment}
             onSendMessage={(inv) => {
               setSelectedInvoice(inv)
               setShowMessageModal(true)
@@ -440,13 +497,12 @@ export default function IuranDetailPage() {
           />
         )}
 
-        {/* MEMBER VIEW: Lihat Tagihan Saya Saja */}
-        {/* MEMBER VIEW: Lihat Tagihan Saya Saja */}
+        {/* MEMBER VIEW */}
         {!isAdmin && (
           <MemberDetail
             due={due}
             roomId={roomId}
-            currentUserId={currentUserId} // <--- GANTI 'currentMemberId' JADI 'currentUserId'
+            currentUserId={currentUserId}
             onPay={(inv) => {
               setSelectedInvoice(inv)
               setShowPaymentModal(true)
@@ -506,7 +562,6 @@ export default function IuranDetailPage() {
           onSubmit={handleDelegateAdmin}
         />
 
-        {/* ADD MEMBER MODAL */}
         <AddMemberModal
           show={showAddMemberModal}
           onClose={() => {
@@ -523,7 +578,6 @@ export default function IuranDetailPage() {
           onSubmit={handleAddMember}
         />
 
-        {/* EDIT INVOICE AMOUNT MODAL (NEW) */}
         <EditInvoiceAmountModal
           show={showEditAmountModal}
           onClose={() => setShowEditAmountModal(false)}

@@ -1,21 +1,33 @@
 import { Card } from "@/components/ui/card"
-// Pastikan path import Due benar (sesuai struktur folder Anda)
-import { Due } from "./shared" 
+import { Due } from "./shared"
 
-// PENTING: Harus "export function", JANGAN "export default function"
 export function InfoCard({ due }: { due: Due }) {
-  // Guard clause: Cegah error jika data due belum ada/null saat render
-  if (!due) return null; 
+  if (!due) return null
 
   return (
     <Card className="bg-white rounded-2xl shadow-lg border-0 overflow-hidden">
       <div className="p-6 md:p-8">
         <h3 className="text-xl font-bold text-gray-900 mb-6">Informasi Iuran</h3>
         <div className="space-y-4">
+          
+          {/* 1. UPDATE: Menampilkan Nomor Rekening */}
           <div className="bg-blue-50 rounded-lg p-4">
             <p className="text-xs text-gray-600 mb-1">Nomor Rekening / QR</p>
-            <p className="font-bold text-gray-900 text-sm break-all">{due.description || "-"}</p>
+            <p className="font-bold text-gray-900 text-sm break-all">
+              {due.accountNumber || "-"}
+            </p>
           </div>
+
+          {/* 2. UPDATE: Menampilkan Deskripsi (Jika ada) */}
+          {due.description && (
+            <div className="bg-yellow-50 rounded-lg p-4">
+              <p className="text-xs text-gray-600 mb-1">Deskripsi</p>
+              <p className="font-bold text-gray-900 text-sm break-all">
+                {due.description}
+              </p>
+            </div>
+          )}
+
           <div className="bg-purple-50 rounded-lg p-4">
             <p className="text-xs text-gray-600 mb-1">Jatuh Tempo</p>
             <p className="font-bold text-gray-900 text-sm">
@@ -29,14 +41,20 @@ export function InfoCard({ due }: { due: Due }) {
                 : "-"}
             </p>
           </div>
+
           <div className="bg-gray-50 rounded-lg p-4">
             <p className="text-xs text-gray-600 mb-1">Dibuat Tanggal</p>
             <p className="font-bold text-gray-900 text-sm">
-              {due.startDate 
-                ? new Date(due.startDate).toLocaleDateString("id-ID")
+              {due.createdAt 
+                ? new Date(due.createdAt).toLocaleDateString("id-ID", {
+                    day: "numeric", 
+                    month: "long", 
+                    year: "numeric"
+                  })
                 : "-"}
             </p>
           </div>
+          
         </div>
       </div>
     </Card>

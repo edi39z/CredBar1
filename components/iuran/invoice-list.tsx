@@ -1,25 +1,24 @@
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Plus, CheckCircle, Send, Edit3 } from "lucide-react" // Edit3 icon untuk edit nominal
+import { CheckCircle, Send, Edit3 } from "lucide-react"
 import { Due, Invoice, getStatusColor, getStatusIcon, getStatusLabel } from "./shared"
-
 
 interface InvoiceListProps {
   due: Due
   isAdmin: boolean
-  currentMemberId: string | null // Butuh ini untuk cek tagihan sendiri
+  currentMemberId: string | null
   onOpenInviteModal: () => void
   onPay: (invoice: Invoice) => void
   onConfirm: (id: string) => void
   onSendMessage: (invoice: Invoice) => void
-  onEditAmount: (invoice: Invoice) => void // Handler baru
+  onEditAmount: (invoice: Invoice) => void
 }
 
 export function InvoiceList({
   due,
   isAdmin,
   currentMemberId,
-  onOpenInviteModal,
+  // onOpenInviteModal, // Tidak dipakai lagi tombolnya
   onPay,
   onConfirm,
   onSendMessage,
@@ -30,17 +29,7 @@ export function InvoiceList({
       <div className="p-6 md:p-8">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold text-gray-900">Daftar Tagihan</h2>
-          <div className="flex gap-2">
-            {isAdmin && (
-              <Button
-                onClick={onOpenInviteModal}
-                className="bg-blue-500 hover:bg-blue-600 text-white flex items-center gap-2"
-              >
-                <Plus size={20} />
-                Tambah Tagihan
-              </Button>
-            )}
-          </div>
+          {/* Tombol Tambah Tagihan DIHAPUS */}
         </div>
 
         <div className="space-y-3">
@@ -48,8 +37,6 @@ export function InvoiceList({
             const memberName = invoice.member?.name || "Unknown Member"
             const memberNominal = invoice.amount
             const memberStatus = invoice.status
-            
-            // Cek apakah ini tagihan milik Admin sendiri
             const isOwnInvoice = currentMemberId && String(invoice.memberId) === String(currentMemberId)
 
             return (
@@ -59,7 +46,7 @@ export function InvoiceList({
                     <p className="font-bold text-gray-900">
                       {memberName} {isOwnInvoice && <span className="text-xs text-blue-500">(Anda)</span>}
                     </p>
-                    <p className="text-sm text-gray-600">Rp {memberNominal.toLocaleString("id-ID")}</p>
+                    <p className="text-sm text-gray-600">Rp {Number(memberNominal).toLocaleString("id-ID")}</p>
                   </div>
                   <span
                     className={`text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1 ${getStatusColor(memberStatus)}`}
@@ -94,11 +81,9 @@ export function InvoiceList({
                   <p className="text-xs text-gray-600 mb-2 italic">Catatan: {invoice.description}</p>
                 )}
 
-                {/* --- LOGIC TOMBOL ADMIN --- */}
                 <div className="flex gap-2 flex-wrap">
                   {isAdmin && (
                     <>
-                      {/* 1. Jika PENDING: Tampilkan Konfirmasi */}
                       {memberStatus === "PENDING" && (
                         <Button
                           onClick={() => onConfirm(invoice.id)}
@@ -108,7 +93,6 @@ export function InvoiceList({
                         </Button>
                       )}
 
-                      {/* 2. Jika DRAFT/OVERDUE dan BUKAN Punya Sendiri: Edit Nominal */}
                       {(memberStatus === "DRAFT" || memberStatus === "OVERDUE") && !isOwnInvoice && (
                         <Button
                           onClick={() => onEditAmount(invoice)}
@@ -118,7 +102,6 @@ export function InvoiceList({
                         </Button>
                       )}
 
-                      {/* 3. Jika Punya Sendiri: Bayar */}
                       {(memberStatus === "DRAFT" || memberStatus === "OVERDUE") && isOwnInvoice && (
                         <Button
                           onClick={() => onPay(invoice)}
@@ -128,7 +111,6 @@ export function InvoiceList({
                         </Button>
                       )}
 
-                      {/* Tombol Kirim Pesan Selalu Ada utk Admin */}
                       <Button
                         onClick={() => onSendMessage(invoice)}
                         className="bg-purple-500 hover:bg-purple-600 text-white text-xs py-1 px-3"

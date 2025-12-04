@@ -1,11 +1,11 @@
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Plus, Edit2, Trash2, Shield, Crown, DollarSign, CheckCircle, AlertCircle, Users } from "lucide-react"
+import { Plus, Edit2, Trash2, Crown, DollarSign, CheckCircle, AlertCircle, Users } from "lucide-react"
 import { Due } from "./shared"
 
 interface HeaderCardProps {
   due: Due
-  roomId: string
+  groupName: string // <--- Ubah dari roomId ke groupName
   isAdmin: boolean
   totalTerkumpul: number
   totalBelumBayar: number
@@ -17,14 +17,13 @@ interface HeaderCardProps {
 
 export function HeaderCard({
   due,
-  roomId,
+  groupName, // <--- Gunakan ini
   isAdmin,
   totalTerkumpul,
   totalBelumBayar,
   onAddMember,
   onEdit,
   onDelete,
-  onDelegate,
 }: HeaderCardProps) {
   return (
     <Card className="bg-white rounded-2xl shadow-lg overflow-hidden border-0 mb-6">
@@ -34,7 +33,6 @@ export function HeaderCard({
           <div>
             <h1 className="text-3xl md:text-4xl font-bold text-gray-900">{due.name}</h1>
             <p className="text-gray-600 mt-2">{due.description}</p>
-            <p className="text-sm text-gray-500 mt-2">Grup: {roomId}</p>
           </div>
           <div className="flex gap-2 flex-wrap">
             {isAdmin && (
@@ -57,12 +55,6 @@ export function HeaderCard({
                 >
                   <Trash2 size={16} /> Hapus
                 </Button>
-                <Button
-                  onClick={onDelegate}
-                  className="bg-purple-500 hover:bg-purple-600 text-white flex items-center gap-2"
-                >
-                  <Shield size={16} /> Delegasi Admin
-                </Button>
               </>
             )}
             {isAdmin && (
@@ -79,7 +71,7 @@ export function HeaderCard({
               <DollarSign size={16} className="text-blue-500" />
               <p className="text-xs text-gray-600">Total Iuran</p>
             </div>
-            <p className="font-bold text-gray-900 text-lg">Rp {due.amount.toLocaleString("id-ID")}</p>
+            <p className="font-bold text-gray-900 text-lg">Rp {Number(due.amount).toLocaleString("id-ID")}</p>
           </div>
           <div className="bg-green-50 rounded-lg p-4">
             <div className="flex items-center gap-2 mb-2">

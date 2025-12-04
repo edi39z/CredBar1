@@ -3,10 +3,10 @@ import { CheckCircle, Clock, AlertCircle, Edit2 } from "lucide-react"
 export interface Invoice {
   id: string
   code: string
-  memberId: string
+  memberId: string | number // Support string/number agar fleksibel
   dueId?: number
   description?: string
-  amount: number
+  amount: number | string
   status: "DRAFT" | "PENDING" | "PAID" | "OVERDUE"
   dueDate: string
   paidDate?: string
@@ -28,13 +28,15 @@ export interface Due {
   id: number
   name: string
   description?: string
-  amount: number
+  amount: number | string
+  accountNumber?: string // <--- Field baru ditambahkan disini
   isRecurring: boolean
   frequency?: string
   interval?: number
   startDate?: string
   nextDueDate?: string
   isActive: boolean
+  createdAt?: string
   invoices: Invoice[]
 }
 

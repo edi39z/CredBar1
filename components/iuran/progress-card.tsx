@@ -34,6 +34,7 @@ export function ProgressCard({ progress, lunas, menunggu, belumBayar, due }: Pro
           </div>
 
           <div className="grid grid-cols-3 gap-4">
+            {/* LUNAS */}
             <div className="bg-green-50 rounded-lg p-4 border border-green-200">
               <div className="flex items-center gap-2 mb-2">
                 <CheckCircle size={18} className="text-green-600" />
@@ -44,10 +45,13 @@ export function ProgressCard({ progress, lunas, menunggu, belumBayar, due }: Pro
                 Rp{" "}
                 {due.invoices
                   .filter((inv) => inv.status === "PAID")
-                  .reduce((sum, inv) => sum + inv.amount, 0)
+                  // PERBAIKAN: Tambahkan Number() agar dijumlahkan, bukan digabung string
+                  .reduce((sum, inv) => sum + Number(inv.amount), 0)
                   .toLocaleString("id-ID")}
               </p>
             </div>
+
+            {/* MENUNGGU */}
             <div className="bg-yellow-50 rounded-lg p-4 border border-yellow-200">
               <div className="flex items-center gap-2 mb-2">
                 <Clock size={18} className="text-yellow-600" />
@@ -58,10 +62,13 @@ export function ProgressCard({ progress, lunas, menunggu, belumBayar, due }: Pro
                 Rp{" "}
                 {due.invoices
                   .filter((inv) => inv.status === "PENDING")
-                  .reduce((sum, inv) => sum + inv.amount, 0)
+                  // PERBAIKAN: Tambahkan Number()
+                  .reduce((sum, inv) => sum + Number(inv.amount), 0)
                   .toLocaleString("id-ID")}
               </p>
             </div>
+
+            {/* BELUM BAYAR */}
             <div className="bg-red-50 rounded-lg p-4 border border-red-200">
               <div className="flex items-center gap-2 mb-2">
                 <AlertCircle size={18} className="text-red-600" />
@@ -72,7 +79,8 @@ export function ProgressCard({ progress, lunas, menunggu, belumBayar, due }: Pro
                 Rp{" "}
                 {due.invoices
                   .filter((inv) => inv.status === "OVERDUE" || inv.status === "DRAFT")
-                  .reduce((sum, inv) => sum + inv.amount, 0)
+                  // PERBAIKAN: Tambahkan Number()
+                  .reduce((sum, inv) => sum + Number(inv.amount), 0)
                   .toLocaleString("id-ID")}
               </p>
             </div>

@@ -65,17 +65,7 @@ export function MemberDetail({ due, roomId, currentUserId, onPay }: MemberDetail
                     </div>
                   </div>
 
-                  {/* Payment Method Card */}
-                  <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
-                    <h3 className="text-lg font-bold text-gray-900 mb-4">Metode Pembayaran</h3>
-                    <div className="space-y-4">
-                      <div className="bg-white rounded-lg p-4 border border-gray-200">
-                        <p className="text-xs text-gray-600 mb-2">Nomor Rekening / QR</p>
-                        <p className="text-lg font-bold text-gray-900 font-mono">{due.description}</p>
-                        <p className="text-xs text-gray-500 mt-2">Salin nomor rekening untuk transfer</p>
-                      </div>
-                    </div>
-                  </div>
+        
 
                   {/* Info Tanggal Bayar */}
                   {invoice.paidDate && (
@@ -140,27 +130,7 @@ export function MemberDetail({ due, roomId, currentUserId, onPay }: MemberDetail
           )}
         </div>
       </Card>
-      
-      {/* ... Info Grup Card (Tetap Sama) ... */}
-      <Card className="bg-white rounded-2xl shadow-lg border-0 overflow-hidden">
-        <div className="p-6 md:p-8">
-          <h3 className="text-xl font-bold text-gray-900 mb-4">Informasi Grup</h3>
-          <div className="space-y-3">
-            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-              <span className="text-gray-600">Nama Grup</span>
-              <span className="font-semibold text-gray-900">{roomId}</span>
-            </div>
-            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-              <span className="text-gray-600">Total Anggota</span>
-              <span className="font-semibold text-gray-900">{due.invoices.length}</span>
-            </div>
-            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-              <span className="text-gray-600">Total Iuran</span>
-              <span className="font-semibold text-gray-900">Rp {due.amount.toLocaleString("id-ID")}</span>
-            </div>
-          </div>
-        </div>
-      </Card>
+    
     </div>
   )
 }

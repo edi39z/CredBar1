@@ -131,19 +131,23 @@ model RoomMember {
 }
 
 model Due {
-    id          Int           @id @default(autoincrement())
-    roomId      Int
-    name        String
-    description String?
-    amount      BigInt
-    isRecurring Boolean       @default(false)
-    frequency   DueFrequency? // if recurring
-    interval    Int? // e.g. every 1 month
-    startDate   DateTime?
-    nextDueDate DateTime?
-    isActive    Boolean       @default(true)
-    createdAt   DateTime      @default(now())
-    updatedAt   DateTime      @updatedAt
+    id            Int           @id @default(autoincrement())
+    roomId        Int
+    name          String
+    description   String?
+    amount        BigInt
+    
+    // Field baru ditambahkan di sini
+    accountNumber String?       
+    
+    isRecurring   Boolean       @default(false)
+    frequency     DueFrequency? // if recurring
+    interval      Int?          // e.g. every 1 month
+    startDate     DateTime?
+    nextDueDate   DateTime?
+    isActive      Boolean       @default(true)
+    createdAt     DateTime      @default(now())
+    updatedAt     DateTime      @updatedAt
 
     room     Room      @relation(fields: [roomId], references: [id], onDelete: Cascade)
     invoices Invoice[]

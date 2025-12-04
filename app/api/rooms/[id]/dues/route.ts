@@ -144,6 +144,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         name: body.name.trim(),
         description: body.description?.trim() || null,
         amount: amountBigInt,
+        // --- TAMBAHAN: Simpan Nomor Rekening ---
+        accountNumber: body.accountNumber?.trim() || null, 
+        // ---------------------------------------
         isRecurring: body.isRecurring ?? false,
         frequency: body.isRecurring ? body.frequency || "MONTHLY" : null,
         interval: body.isRecurring ? Math.max(1, Number(body.interval) || 1) : null,
@@ -183,4 +186,4 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       { status: 500 },
     )
   }
-}
+} 

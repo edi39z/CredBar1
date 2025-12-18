@@ -4,65 +4,73 @@ import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Plus, Users, CreditCard, TrendingUp, Bell, Settings, Search } from "lucide-react"
+import { Plus, Users, CreditCard, TrendingUp, Bell, Settings, Search, Loader2 } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { DashboardSidebar } from "@/components/dashboard-sidebar"
 import { StatCard } from "@/components/stat-card"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts"
 
-const COLORS = ["#3A86FF", "#A7F3D0", "#FF6B6B"]
+const COLORS = ["#3A86FF", "#10B981", "#FF6B6B", "#8B5CF6", "#F59E0B"]
 
-// 1. DEFINISIKAN INTERFACE TIPE DATA
+// 1. DEFINISIKAN INTERFACE TIPE DATA SESUAI API
 interface Transaction {
   id: string | number
-  name: string
   group: string
   amount: number
   date: string
   status: string
+  invoiceCode: string
 }
 
-interface Breakdown {
+interface DueBreakdown {
+  id: number
   name: string
   amount: number
+  isActive: boolean
 }
 
 interface PaymentProgress {
   date: string
-  paid: number
-  pending: number
+  amount: number
+  groupName: string
 }
 
 interface DashboardData {
   totalGroups: number
   unpaidAmount: number
   paymentProgressData: PaymentProgress[]
-  breakdown: Breakdown[]
+  duesBreakdown: DueBreakdown[] // Nama disesuaikan dengan API Backend
   transactions: Transaction[]
 }
 
 export function DashboardNew() {
-    const [timeRange, setTimeRange] = useState("today")
+    const [timeRange, setTimeRange] = useState("hari-ini")
     const [loading, setLoading] = useState(true)
 
-    // 2. GUNAKAN INTERFACE PADA USESTATE
+    // 2. INITIAL STATE DENGAN ARRAY KOSONG AGAR .length TIDAK ERROR
     const [data, setData] = useState<DashboardData>({
         totalGroups: 0,
         unpaidAmount: 0,
         paymentProgressData: [],
-        breakdown: [],
+        duesBreakdown: [], 
         transactions: []
     })
 
-    // ================================
-    // Fetch REAL DATA from API
-    // ================================
     useEffect(() => {
         async function loadData() {
             try {
                 const res = await fetch("/api/dashboard")
+                if (!res.ok) throw new Error("Gagal mengambil data")
                 const json = await res.json()
-                setData(json)
+                
+                // Pastikan data yang di-set memiliki struktur yang benar
+                setData({
+                    totalGroups: json.totalGroups || 0,
+                    unpaidAmount: json.unpaidAmount || 0,
+                    paymentProgressData: json.paymentProgressData || [],
+                    duesBreakdown: json.duesBreakdown || [], // Mapping ke key yang benar
+                    transactions: json.transactions || []
+                })
             } catch (err) {
                 console.error("Failed to fetch dashboard:", err)
             } finally {
@@ -74,8 +82,9 @@ export function DashboardNew() {
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center h-screen">
-                <p className="text-gray-500">Loading dashboard...</p>
+            <div className="flex flex-col items-center justify-center h-screen bg-[#F9FAFB]">
+                <Loader2 className="h-10 w-10 animate-spin text-blue-500 mb-4" />
+                <p className="text-gray-500 font-medium">Memuat dashboard...</p>
             </div>
         )
     }
@@ -94,7 +103,7 @@ export function DashboardNew() {
                         <div className="flex items-center gap-4">
                             <div className="hidden md:flex items-center gap-2 bg-gray-100 rounded-lg px-3 py-2">
                                 <Search className="h-4 w-4 text-gray-400" />
-                                <Input placeholder="Cari grup atau anggota..." className="bg-transparent border-0 text-sm" />
+                                <Input placeholder="Cari grup atau anggota..." className="bg-transparent border-0 text-sm focus-visible:ring-0" />
                             </div>
 
                             <Button variant="ghost" size="icon">
@@ -105,19 +114,19 @@ export function DashboardNew() {
                             </Button>
                             <Avatar className="h-8 w-8">
                                 <AvatarImage src="/diverse-avatars.png" />
-                                <AvatarFallback>CM</AvatarFallback>
+                                <AvatarFallback>User</AvatarFallback>
                             </Avatar>
                         </div>
                     </div>
 
                     {/* RANGE */}
-                    <div className="flex items-center gap-2 px-4 md:px-8 pb-4 border-t border-gray-100">
+                    <div className="flex items-center gap-2 px-4 md:px-8 pb-4 border-t border-gray-100 pt-2">
                         {["Hari ini", "7 hari", "30 hari", "90 hari", "Semua waktu"].map((range) => (
                             <Button
                                 key={range}
                                 variant={timeRange === range.toLowerCase().replace(" ", "-") ? "default" : "ghost"}
                                 size="sm"
-                                className="text-xs"
+                                className="text-xs h-8"
                                 onClick={() => setTimeRange(range.toLowerCase().replace(" ", "-"))}
                             >
                                 {range}
@@ -143,7 +152,7 @@ export function DashboardNew() {
                             />
 
                             <StatCard
-                                title="Tagihan Tertunda"
+                                title="Tagihan Saya"
                                 value={`Rp ${data.unpaidAmount.toLocaleString("id-ID")}`}
                                 icon={<CreditCard className="h-5 w-5" />}
                                 trend="↓"
@@ -153,18 +162,17 @@ export function DashboardNew() {
                             />
 
                             <StatCard
-                                title="Pembayaran Lunas"
-                                value={`${Math.floor(Math.random() * 20) + 80}%`}
+                                title="Status Bayar"
+                                value={data.unpaidAmount === 0 ? "Lunas" : "Ada Tagihan"}
                                 icon={<TrendingUp className="h-5 w-5" />}
-                                trend="↑"
+                                trend="-"
                                 bgColor="bg-[#10B981]"
                                 textColor="text-white"
                                 iconBgColor="bg-white/20"
                             />
 
                             <StatCard
-                                title="Total Terkumpul"
-                                // TypeScript sekarang tahu bahwa 'x' memiliki properti 'amount'
+                                title="Total Pengeluaran"
                                 value={`Rp ${(data.transactions.reduce((t, x) => t + x.amount, 0)).toLocaleString("id-ID")}`}
                                 icon={<Plus className="h-5 w-5" />}
                                 trend="↑"
@@ -177,22 +185,41 @@ export function DashboardNew() {
                         {/* CHART PAYMENT PROGRESS */}
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-                            <Card className="lg:col-span-2 shadow-lg border-0">
+                            <Card className="lg:col-span-2 shadow-md border-0">
                                 <CardHeader>
-                                    <CardTitle className="text-lg font-bold">Progress Pembayaran Mingguan</CardTitle>
+                                    <CardTitle className="text-lg font-bold">Riwayat Pembayaran (30 Hari)</CardTitle>
                                 </CardHeader>
                                 <CardContent>
                                     {data.paymentProgressData.length === 0 ? (
-                                        <p className="text-gray-500 text-sm">Belum ada data pembayaran.</p>
+                                        <div className="h-[300px] flex items-center justify-center border-2 border-dashed rounded-lg">
+                                            <p className="text-gray-400 text-sm">Belum ada aktivitas pembayaran.</p>
+                                        </div>
                                     ) : (
                                         <ResponsiveContainer width="100%" height={300}>
                                             <BarChart data={data.paymentProgressData}>
-                                                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                                                <XAxis dataKey="date" stroke="#9ca3af" />
-                                                <YAxis stroke="#9ca3af" />
-                                                <Tooltip />
-                                                <Bar dataKey="paid" stackId="a" fill="#3A86FF" />
-                                                <Bar dataKey="pending" stackId="a" fill="#FF6B6B" />
+                                                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
+                                                {/* HAPUS tickFormatter karena data sudah string "19 Des" */}
+                                                <XAxis 
+                                                    dataKey="date" 
+                                                    stroke="#9ca3af" 
+                                                    fontSize={12}
+                                                    tickLine={false}
+                                                    axisLine={false}
+                                                />
+                                                <YAxis 
+                                                    stroke="#9ca3af" 
+                                                    fontSize={12}
+                                                    tickLine={false}
+                                                    axisLine={false}
+                                                    tickFormatter={(value) => `Rp ${value.toLocaleString("id-ID")}`}
+                                                />
+                                                <Tooltip 
+                                                    formatter={(val: number) => `Rp ${val.toLocaleString("id-ID")}`} 
+                                                    labelStyle={{ color: 'black' }}
+                                                />
+                                                {/* Gunakan dataKey "paid" dan "pending" sesuai log [FINAL] kamu */}
+                                                <Bar name="Lunas" dataKey="paid" stackId="a" fill="#3A86FF" radius={[0, 0, 0, 0]} />
+                                                <Bar name="Tertunda" dataKey="pending" stackId="a" fill="#FF6B6B" radius={[4, 4, 0, 0]} />
                                             </BarChart>
                                         </ResponsiveContainer>
                                     )}
@@ -200,42 +227,46 @@ export function DashboardNew() {
                             </Card>
 
                             {/* PIE BREAKDOWN */}
-                            <Card className="shadow-lg border-0">
+                            <Card className="shadow-md border-0">
                                 <CardHeader>
-                                    <CardTitle className="text-lg font-bold">Breakdown Iuran</CardTitle>
+                                    <CardTitle className="text-lg font-bold">Jenis Iuran Aktif</CardTitle>
                                 </CardHeader>
                                 <CardContent>
-                                    {data.breakdown.length === 0 ? (
-                                        <p className="text-gray-500 text-sm">Belum ada iuran terdaftar.</p>
+                                    {data.duesBreakdown.length === 0 ? (
+                                        <div className="h-[300px] flex items-center justify-center border-2 border-dashed rounded-lg">
+                                            <p className="text-gray-400 text-sm">Tidak ada iuran aktif.</p>
+                                        </div>
                                     ) : (
                                         <div className="flex flex-col items-center">
-                                            <div className="w-40 h-40">
+                                            <div className="w-full h-48">
                                                 <ResponsiveContainer width="100%" height="100%">
                                                     <PieChart>
                                                         <Pie
-                                                            data={data.breakdown}
+                                                            data={data.duesBreakdown}
                                                             cx="50%"
                                                             cy="50%"
-                                                            innerRadius={60}
-                                                            outerRadius={80}
+                                                            innerRadius={50}
+                                                            outerRadius={70}
                                                             dataKey="amount"
+                                                            paddingAngle={5}
                                                         >
-                                                            {data.breakdown.map((_, i) => (
+                                                            {data.duesBreakdown.map((_, i) => (
                                                                 <Cell key={i} fill={COLORS[i % COLORS.length]} />
                                                             ))}
                                                         </Pie>
+                                                        <Tooltip formatter={(val: number) => `Rp ${val.toLocaleString("id-ID")}`} />
                                                     </PieChart>
                                                 </ResponsiveContainer>
                                             </div>
 
-                                            <div className="w-full mt-4 space-y-2">
-                                                {data.breakdown.map((d, index) => (
-                                                    <div key={index} className="flex justify-between text-sm">
+                                            <div className="w-full mt-4 space-y-3">
+                                                {data.duesBreakdown.map((d, index) => (
+                                                    <div key={d.id} className="flex justify-between items-center text-sm">
                                                         <div className="flex items-center gap-2">
-                                                            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: COLORS[index] }}></div>
-                                                            <span>{d.name}</span>
+                                                            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }}></div>
+                                                            <span className="text-gray-600 truncate max-w-[120px]">{d.name}</span>
                                                         </div>
-                                                        <span>Rp {d.amount.toLocaleString("id-ID")}</span>
+                                                        <span className="font-semibold">Rp {d.amount.toLocaleString("id-ID")}</span>
                                                     </div>
                                                 ))}
                                             </div>
@@ -246,46 +277,50 @@ export function DashboardNew() {
                         </div>
 
                         {/* TRANSACTION TABLE */}
-                        <Card className="shadow-lg border-0">
-                            <CardHeader>
-                                <CardTitle className="text-lg font-bold">Riwayat Transaksi</CardTitle>
+                        <Card className="shadow-md border-0 overflow-hidden">
+                            <CardHeader className="bg-white border-b border-gray-100">
+                                <CardTitle className="text-lg font-bold">10 Transaksi Terakhir</CardTitle>
                             </CardHeader>
-                            <CardContent>
+                            <CardContent className="p-0">
                                 <div className="overflow-x-auto">
                                     <table className="w-full text-sm">
                                         <thead>
-                                            <tr className="border-b border-gray-200">
-                                                <th className="py-3 px-4">No</th>
-                                                <th className="py-3 px-4">Nama</th>
-                                                <th className="py-3 px-4">Grup</th>
-                                                <th className="py-3 px-4">Nominal</th>
-                                                <th className="py-3 px-4">Tanggal</th>
-                                                <th className="py-3 px-4">Status</th>
+                                            <tr className="bg-gray-50 text-gray-500 text-left border-b">
+                                                <th className="py-4 px-6 font-medium">Invoice</th>
+                                                <th className="py-4 px-6 font-medium">Grup</th>
+                                                <th className="py-4 px-6 font-medium text-right">Nominal</th>
+                                                <th className="py-4 px-6 font-medium">Tanggal</th>
+                                                <th className="py-4 px-6 font-medium text-center">Status</th>
                                             </tr>
                                         </thead>
-                                        <tbody>
-                                            {data.transactions.map((tx, i) => (
-                                                <tr key={tx.id} className="border-b border-gray-100">
-                                                    <td className="py-3 px-4">{i + 1}</td>
-                                                    <td className="py-3 px-4">{tx.name}</td>
-                                                    <td className="py-3 px-4">{tx.group}</td>
-                                                    <td className="py-3 px-4 font-semibold">
-                                                        Rp {tx.amount.toLocaleString("id-ID")}
-                                                    </td>
-                                                    <td className="py-3 px-4">
-                                                        {new Date(tx.date).toLocaleDateString("id-ID")}
-                                                    </td>
-                                                    <td className="py-3 px-4">
-                                                        <span className={`px-3 py-1 text-xs rounded-full ${
-                                                            tx.status === "Lunas"
-                                                                ? "bg-green-200 text-green-700"
-                                                                : "bg-red-200 text-red-700"
-                                                        }`}>
-                                                            {tx.status}
-                                                        </span>
-                                                    </td>
+                                        <tbody className="divide-y divide-gray-100">
+                                            {data.transactions.length === 0 ? (
+                                                <tr>
+                                                    <td colSpan={5} className="py-8 text-center text-gray-400">Belum ada riwayat transaksi.</td>
                                                 </tr>
-                                            ))}
+                                            ) : (
+                                                data.transactions.map((tx) => (
+                                                    <tr key={tx.id} className="hover:bg-gray-50 transition-colors">
+                                                        <td className="py-4 px-6 font-medium text-blue-600">{tx.invoiceCode}</td>
+                                                        <td className="py-4 px-6 text-gray-600">{tx.group}</td>
+                                                        <td className="py-4 px-6 font-bold text-right">
+                                                            Rp {tx.amount.toLocaleString("id-ID")}
+                                                        </td>
+                                                        <td className="py-4 px-6 text-gray-500">
+                                                            {new Date(tx.date).toLocaleDateString("id-ID")}
+                                                        </td>
+                                                        <td className="py-4 px-6 text-center">
+                                                            <span className={`px-3 py-1 text-xs font-bold rounded-full ${
+                                                                tx.status === "Lunas"
+                                                                    ? "bg-green-100 text-green-700"
+                                                                    : "bg-yellow-100 text-yellow-700"
+                                                            }`}>
+                                                                {tx.status}
+                                                            </span>
+                                                        </td>
+                                                    </tr>
+                                                ))
+                                            )}
                                         </tbody>
                                     </table>
                                 </div>

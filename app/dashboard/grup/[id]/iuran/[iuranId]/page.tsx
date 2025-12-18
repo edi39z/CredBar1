@@ -42,11 +42,12 @@ export default function IuranDetailPage() {
   const [showPaymentModal, setShowPaymentModal] = useState(false)
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null)
   
-  // State Payment Form
+  // --- UPDATE: State Payment Form + proofFile ---
   const [paymentForm, setPaymentForm] = useState({
     amount: "",
     method: "TRANSFER",
     note: "",
+    proofFile: "", // URL Bukti Pembayaran
   })
 
   const [messageForm, setMessageForm] = useState({ message: "" })
@@ -298,6 +299,7 @@ export default function IuranDetailPage() {
           amount: Number(selectedInvoice.amount),
           method: paymentForm.method,
           note: paymentForm.note,
+          proofFile: paymentForm.proofFile, // --- KIRIM URL BUKTI ---
         }),
       })
       const result = await response.json()
@@ -305,7 +307,8 @@ export default function IuranDetailPage() {
         alert("Pembayaran berhasil dikirim!")
         await refetchDue()
         setShowPaymentModal(false)
-        setPaymentForm({ amount: "", method: "TRANSFER", note: "" })
+        // Reset Form
+        setPaymentForm({ amount: "", method: "TRANSFER", note: "", proofFile: "" })
       } else {
         alert(`Pembayaran gagal: ${result.message}`)
       }
@@ -438,7 +441,6 @@ export default function IuranDetailPage() {
           Kembali
         </Button>
 
-        {/* PERBAIKAN DI SINI: MENGHAPUS roomId */}
         <HeaderCard
           due={due}
           isAdmin={isAdmin}
@@ -500,7 +502,7 @@ export default function IuranDetailPage() {
           show={showPaymentModal}
           onClose={() => {
             setShowPaymentModal(false)
-            setPaymentForm({ amount: "", method: "TRANSFER", note: "" })
+            setPaymentForm({ amount: "", method: "TRANSFER", note: "", proofFile: "" }) // Reset Form
             setSelectedInvoice(null)
           }}
           selectedInvoice={selectedInvoice}

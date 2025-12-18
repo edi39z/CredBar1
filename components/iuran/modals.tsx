@@ -1,11 +1,14 @@
 import type React from "react"
+import { useState, useRef } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Upload, X } from "lucide-react"
+import { Upload, X, Loader2, CheckCircle, ExternalLink, Calendar, CreditCard, AlignLeft, Check } from "lucide-react"
 import { Invoice, RoomMember } from "./shared"
 
-// --- Payment Modal (FIXED: Tampilan Nominal Read-Only) ---
+// =========================================================
+// 1. PAYMENT MODAL (Upload Bukti & Bayar)
+// =========================================================
 export function PaymentModal({
   show,
   onClose,
@@ -23,22 +26,62 @@ export function PaymentModal({
   setPaymentForm: (form: any) => void
   onSubmit: (e: React.FormEvent) => void
 }) {
+  const [isUploading, setIsUploading] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert("Ukuran file terlalu besar (Maks 5MB)")
+      return
+    }
+
+    setIsUploading(true)
+    const formData = new FormData()
+    formData.append("file", file)
+
+    try {
+      const response = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      })
+      const data = await response.json()
+
+      if (response.ok && data.url) {
+        setPaymentForm({ ...paymentForm, proofFile: data.url })
+      } else {
+        alert("Gagal mengupload gambar: " + (data.error || "Unknown error"))
+      }
+    } catch (error) {
+      console.error("Upload error:", error)
+      alert("Terjadi kesalahan saat upload gambar")
+    } finally {
+      setIsUploading(false)
+    }
+  }
+
+  const triggerFileInput = () => {
+    fileInputRef.current?.click()
+  }
+
   if (!show || !selectedInvoice) return null
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <Card className="bg-white rounded-2xl shadow-2xl w-full max-w-md border-0">
+      <Card className="bg-white rounded-2xl shadow-2xl w-full max-w-md border-0 max-h-[90vh] overflow-y-auto">
         <div className="p-6">
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Pembayaran Iuran</h2>
           <p className="text-gray-600 mb-6">{dueName}</p>
 
           <form onSubmit={onSubmit} className="space-y-4">
-            {/* TAMPILAN NOMINAL (READ ONLY) */}
             <div className="bg-blue-50 p-4 rounded-lg text-center border border-blue-100">
               <p className="text-sm text-gray-600 mb-1">Total yang harus dibayar</p>
               <p className="text-3xl font-bold text-blue-700">
                 Rp {Number(selectedInvoice.amount).toLocaleString("id-ID")}
               </p>
-              <p className="text-xs text-blue-500 mt-1">*Pembayaran harus full (tidak bisa dicicil)</p>
+              <p className="text-xs text-blue-500 mt-1">*Pembayaran harus full</p>
             </div>
 
             <div>
@@ -66,25 +109,45 @@ export function PaymentModal({
               />
             </div>
 
+            {/* Upload Area */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">Bukti Pembayaran (Opsional)</label>
-              <div className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
-                <Upload size={20} className="text-gray-500" />
-                <span className="text-gray-600">Upload Bukti</span>
-              </div>
+              <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
+
+              {!paymentForm.proofFile ? (
+                <div onClick={triggerFileInput} className={`flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors ${isUploading ? 'opacity-50 pointer-events-none' : ''}`}>
+                  {isUploading ? (
+                    <>
+                      <Loader2 size={20} className="animate-spin text-blue-500" />
+                      <span className="text-gray-500">Mengupload...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Upload size={20} className="text-gray-500" />
+                      <span className="text-gray-600">Klik untuk Upload Bukti</span>
+                    </>
+                  )}
+                </div>
+              ) : (
+                <div className="relative border border-gray-200 rounded-lg p-2 bg-gray-50">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 relative rounded overflow-hidden bg-gray-200 shrink-0">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={paymentForm.proofFile} alt="Bukti" className="w-full h-full object-cover" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-green-600 flex items-center gap-1"><CheckCircle size={14} /> Upload Berhasil</p>
+                      <a href={paymentForm.proofFile} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-500 hover:underline truncate block">Lihat Gambar</a>
+                    </div>
+                    <button type="button" onClick={() => setPaymentForm({...paymentForm, proofFile: ""})} className="p-1 hover:bg-red-100 rounded-full text-red-500 transition-colors"><X size={18} /></button>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="flex gap-3 pt-4">
-              <Button
-                type="button"
-                onClick={onClose}
-                className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-900"
-              >
-                Batal
-              </Button>
-              <Button type="submit" className="flex-1 bg-green-500 hover:bg-green-600 text-white">
-                Bayar Sekarang
-              </Button>
+              <Button type="button" onClick={onClose} className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-900">Batal</Button>
+              <Button type="submit" disabled={isUploading} className="flex-1 bg-green-500 hover:bg-green-600 text-white disabled:opacity-50">{isUploading ? "Tunggu..." : "Bayar Sekarang"}</Button>
             </div>
           </form>
         </div>
@@ -93,7 +156,115 @@ export function PaymentModal({
   )
 }
 
-// --- Invite Modal (Tetap ada untuk kompatibilitas import) ---
+// =========================================================
+// 2. PAYMENT DETAIL MODAL (Admin View: Lihat Bukti & Konfirmasi)
+// =========================================================
+export function PaymentDetailModal({
+  show,
+  onClose,
+  data,
+  onConfirm,
+}: {
+  show: boolean
+  onClose: () => void
+  data: {
+    userName: string
+    amount: number | string
+    status: string
+    date?: string
+    note?: string
+    proofUrl?: string | null
+    method?: string
+    invoiceId: string
+  } | null
+  onConfirm: (id: string) => void
+}) {
+  if (!show || !data) return null
+
+  const isPending = data.status === "PENDING"
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center p-4 z-50 backdrop-blur-sm" onClick={onClose}>
+      <Card className="w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col md:flex-row bg-white border-0 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        
+        {/* KOLOM KIRI: GAMBAR */}
+        <div className="w-full md:w-1/2 bg-gray-900 flex items-center justify-center relative min-h-[300px] md:min-h-full">
+          {data.proofUrl ? (
+            <div className="relative w-full h-full flex items-center justify-center p-4">
+               {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={data.proofUrl} alt="Bukti Pembayaran" className="max-w-full max-h-[50vh] md:max-h-full object-contain" />
+              <a href={data.proofUrl} target="_blank" rel="noopener noreferrer" className="absolute bottom-4 right-4 bg-black/50 hover:bg-black/70 text-white text-xs px-3 py-1 rounded-full flex items-center gap-1 transition-colors">
+                <ExternalLink size={12} /> Buka Original
+              </a>
+            </div>
+          ) : (
+            <div className="text-gray-500 flex flex-col items-center">
+              <span className="text-4xl mb-2">📷</span>
+              <p className="text-sm">Tidak ada bukti gambar</p>
+            </div>
+          )}
+        </div>
+
+        {/* KOLOM KANAN: DETAIL */}
+        <div className="w-full md:w-1/2 p-6 flex flex-col relative overflow-y-auto">
+          <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"><X size={24} /></button>
+
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold text-gray-900">{data.userName}</h2>
+            <div className="flex items-center gap-2 mt-2">
+              <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                data.status === "PAID" ? "bg-green-100 text-green-700" : 
+                data.status === "PENDING" ? "bg-yellow-100 text-yellow-700" : "bg-red-100 text-red-700"
+              }`}>
+                {data.status === "PAID" ? "Lunas" : data.status === "PENDING" ? "Menunggu Konfirmasi" : "Belum Bayar"}
+              </span>
+              <span className="text-gray-400 text-sm">•</span>
+              <span className="font-semibold text-lg text-blue-600">Rp {Number(data.amount).toLocaleString("id-ID")}</span>
+            </div>
+          </div>
+
+          <div className="space-y-4 mb-8">
+            <div className="flex items-start gap-3">
+              <Calendar className="w-5 h-5 text-gray-400 mt-0.5" />
+              <div>
+                <p className="text-xs text-gray-500 font-semibold uppercase">Tanggal Bayar</p>
+                <p className="text-gray-700">{data.date || "-"}</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <CreditCard className="w-5 h-5 text-gray-400 mt-0.5" />
+              <div>
+                <p className="text-xs text-gray-500 font-semibold uppercase">Metode</p>
+                <p className="text-gray-700">{data.method || "Transfer"}</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <AlignLeft className="w-5 h-5 text-gray-400 mt-0.5" />
+              <div>
+                <p className="text-xs text-gray-500 font-semibold uppercase">Catatan</p>
+                <p className="text-gray-700 bg-gray-50 p-3 rounded-lg mt-1 text-sm border border-gray-100">{data.note || "Tidak ada catatan"}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-auto pt-4 border-t">
+            {isPending ? (
+              <Button onClick={() => onConfirm(data.invoiceId)} className="w-full bg-green-500 hover:bg-green-600 text-white h-12 text-base shadow-md">
+                <Check className="mr-2 h-5 w-5" /> Konfirmasi Pembayaran
+              </Button>
+            ) : (
+              <div className="text-center text-gray-400 text-sm">Data transaksi ini sudah selesai.</div>
+            )}
+          </div>
+        </div>
+      </Card>
+    </div>
+  )
+}
+
+// =========================================================
+// 3. INVITE MODAL
+// =========================================================
 export function InviteModal({
   show,
   onClose,
@@ -121,7 +292,9 @@ export function InviteModal({
   )
 }
 
-// --- Message Modal ---
+// =========================================================
+// 4. MESSAGE MODAL
+// =========================================================
 export function MessageModal({
   show,
   onClose,
@@ -175,7 +348,9 @@ export function MessageModal({
   )
 }
 
-// --- Edit Iuran Modal ---
+// =========================================================
+// 5. EDIT IURAN MODAL
+// =========================================================
 export function EditModal({
   show,
   onClose,
@@ -295,7 +470,9 @@ export function EditModal({
   )
 }
 
-// --- Delegate Modal (Tetap ada untuk kompatibilitas import) ---
+// =========================================================
+// 6. DELEGATE MODAL
+// =========================================================
 export function DelegateModal({
   show,
   onClose,
@@ -306,10 +483,12 @@ export function DelegateModal({
   onSubmit: () => void
 }) {
   if (!show) return null
-  return null // Render nothing jika dipanggil
+  return null 
 }
 
-// --- Add Member Modal (UPDATED: Ada input nominal) ---
+// =========================================================
+// 7. ADD MEMBER MODAL
+// =========================================================
 export function AddMemberModal({
   show,
   onClose,
@@ -407,7 +586,9 @@ export function AddMemberModal({
   )
 }
 
-// --- NEW: Edit Invoice Amount Modal ---
+// =========================================================
+// 8. EDIT INVOICE AMOUNT MODAL
+// =========================================================
 export function EditInvoiceAmountModal({
   show,
   onClose,

@@ -1,7 +1,7 @@
 "use client"
 
-import { useState } from "react"
-import { Bell, Trash2, CheckCircle, AlertCircle, Info } from "lucide-react"
+import { useState, useEffect } from "react"
+import { Bell, Trash2, CheckCircle, AlertCircle, Info, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 
@@ -15,92 +15,66 @@ interface Notifikasi {
 }
 
 export default function NotifikasiPage() {
-  const [notifications, setNotifications] = useState<Notifikasi[]>([
-    {
-      id: "1",
-      tipe: "warning",
-      judul: "Pembayaran Tertunda",
-      pesan: "Siti Nurhaliza belum membayar iuran WiFi Kos untuk periode November",
-      tanggal: "2025-11-02",
-      dibaca: false,
-    },
-    {
-      id: "2",
-      tipe: "success",
-      judul: "Pembayaran Diterima",
-      pesan: "Budi Santoso telah membayar iuran WiFi Kos sebesar Rp 50.000",
-      tanggal: "2025-11-01",
-      dibaca: false,
-    },
-    {
-      id: "3",
-      tipe: "info",
-      judul: "Pengingat Jatuh Tempo",
-      pesan: "Jatuh tempo pembayaran Arisan Bulanan tinggal 3 hari lagi",
-      tanggal: "2025-10-31",
-      dibaca: true,
-    },
-    {
-      id: "4",
-      tipe: "warning",
-      judul: "Pembayaran Terlambat",
-      pesan: "Ahmad Wijaya terlambat membayar iuran Arisan Bulanan selama 5 hari",
-      tanggal: "2025-10-30",
-      dibaca: true,
-    },
-    {
-      id: "5",
-      tipe: "success",
-      judul: "Laporan Bulanan Siap",
-      pesan: "Laporan keuangan Oktober telah selesai dan siap untuk diunduh",
-      tanggal: "2025-10-29",
-      dibaca: true,
-    },
-  ])
-
+  const [notifications, setNotifications] = useState<Notifikasi[]>([])
+  const [loading, setLoading] = useState(true)
   const [filterTipe, setFilterTipe] = useState<"semua" | "info" | "warning" | "success">("semua")
+
+  useEffect(() => {
+    fetchNotifications()
+  }, [])
+
+  const fetchNotifications = async () => {
+    try {
+      const response = await fetch("/api/notifications")
+      if (response.ok) {
+        const data = await response.json()
+        setNotifications(data)
+      }
+    } catch (error) {
+      console.error("Gagal memuat notifikasi")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleDelete = async (id: string) => {
+    try {
+      const response = await fetch(`/api/notifications?id=${id}`, { method: "DELETE" })
+      if (response.ok) {
+        setNotifications(notifications.filter((n) => n.id !== id))
+      }
+    } catch (error) {
+      console.error("Gagal menghapus")
+    }
+  }
 
   const filteredNotifications =
     filterTipe === "semua" ? notifications : notifications.filter((n) => n.tipe === filterTipe)
 
-  const unreadCount = notifications.filter((n) => !n.dibaca).length
-
-  const handleMarkAsRead = (id: string) => {
-    setNotifications(notifications.map((n) => (n.id === id ? { ...n, dibaca: true } : n)))
-  }
-
-  const handleDelete = (id: string) => {
-    setNotifications(notifications.filter((n) => n.id !== id))
-  }
-
-  const handleMarkAllAsRead = () => {
-    setNotifications(notifications.map((n) => ({ ...n, dibaca: true })))
-  }
-
   const getNotificationIcon = (tipe: string) => {
     switch (tipe) {
-      case "success":
-        return <CheckCircle size={24} className="text-green-600" />
-      case "warning":
-        return <AlertCircle size={24} className="text-yellow-600" />
-      case "info":
-        return <Info size={24} className="text-blue-600" />
-      default:
-        return <Bell size={24} className="text-gray-600" />
+      case "success": return <CheckCircle size={24} className="text-green-600" />
+      case "warning": return <AlertCircle size={24} className="text-yellow-600" />
+      case "info": return <Info size={24} className="text-blue-600" />
+      default: return <Bell size={24} className="text-gray-600" />
     }
   }
 
   const getNotificationColor = (tipe: string) => {
     switch (tipe) {
-      case "success":
-        return "bg-green-50 border-l-4 border-green-500"
-      case "warning":
-        return "bg-yellow-50 border-l-4 border-yellow-500"
-      case "info":
-        return "bg-blue-50 border-l-4 border-blue-500"
-      default:
-        return "bg-gray-50 border-l-4 border-gray-500"
+      case "success": return "bg-green-50 border-l-4 border-green-500"
+      case "warning": return "bg-yellow-50 border-l-4 border-yellow-500"
+      case "info": return "bg-blue-50 border-l-4 border-blue-500"
+      default: return "bg-gray-50 border-l-4 border-gray-500"
     }
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-blue-50">
+        <Loader2 className="animate-spin text-blue-500" size={40} />
+      </div>
+    )
   }
 
   return (
@@ -111,14 +85,9 @@ export default function NotifikasiPage() {
           <div>
             <h1 className="text-3xl md:text-4xl font-bold text-gray-900">Notifikasi</h1>
             <p className="text-gray-600 mt-2">
-              {unreadCount > 0 ? `Anda memiliki ${unreadCount} notifikasi baru` : "Semua notifikasi sudah dibaca"}
+              Pusat informasi pembayaran dan aktivitas grup Anda
             </p>
           </div>
-          {unreadCount > 0 && (
-            <Button onClick={handleMarkAllAsRead} className="bg-blue-500 hover:bg-blue-600 text-white w-full md:w-auto">
-              Tandai Semua Sudah Dibaca
-            </Button>
-          )}
         </div>
 
         {/* Filter Buttons */}
@@ -128,9 +97,9 @@ export default function NotifikasiPage() {
               key={tipe}
               onClick={() => setFilterTipe(tipe)}
               className={`capitalize ${filterTipe === tipe
-                  ? "bg-blue-500 text-white"
-                  : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
-                }`}
+                ? "bg-blue-500 text-white"
+                : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
+              }`}
             >
               {tipe === "semua" ? "Semua" : tipe === "info" ? "Info" : tipe === "warning" ? "Peringatan" : "Sukses"}
             </Button>
@@ -143,9 +112,7 @@ export default function NotifikasiPage() {
             filteredNotifications.map((notif) => (
               <Card
                 key={notif.id}
-                className={`rounded-xl shadow-md border-0 p-4 transition-all ${getNotificationColor(
-                  notif.tipe,
-                )} ${!notif.dibaca ? "ring-2 ring-blue-300" : ""}`}
+                className={`rounded-xl shadow-md border-0 p-4 transition-all ${getNotificationColor(notif.tipe)}`}
               >
                 <div className="flex items-start gap-4">
                   <div className="flex-shrink-0 mt-1">{getNotificationIcon(notif.tipe)}</div>
@@ -158,18 +125,12 @@ export default function NotifikasiPage() {
                         year: "numeric",
                         month: "long",
                         day: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit"
                       })}
                     </p>
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
-                    {!notif.dibaca && (
-                      <Button
-                        onClick={() => handleMarkAsRead(notif.id)}
-                        className="bg-blue-500 hover:bg-blue-600 text-white text-xs"
-                      >
-                        Baca
-                      </Button>
-                    )}
                     <Button
                       onClick={() => handleDelete(notif.id)}
                       className="bg-red-500 hover:bg-red-600 text-white p-2"

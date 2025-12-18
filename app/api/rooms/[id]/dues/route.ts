@@ -30,37 +30,56 @@ function parseDate(dateString: string | undefined): Date | null {
 // =============================
 // GET /api/rooms/[id]/dues
 // =============================
-export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
     const { id } = await params
     const roomId = Number(id)
 
     if (isNaN(roomId)) {
-      return NextResponse.json({ success: false, message: "Invalid room ID" }, { status: 400 })
+      return NextResponse.json({ success: false, message: "Invalid Room ID" }, { status: 400 })
     }
 
-    const room = await prisma.room.findUnique({ where: { id: roomId } })
-    if (!room) {
-      return NextResponse.json({ success: false, message: "Room not found" }, { status: 404 })
+    const userIdHeader = request.headers.get("x-user-id")
+    const currentUserId = userIdHeader ? Number(userIdHeader) : null
+    let currentUserRole = "member"
+
+    if (currentUserId) {
+      const currentMember = await prisma.roomMember.findFirst({
+        where: { roomId: roomId, userId: currentUserId },
+        select: { role: true }
+      })
+      if (currentMember) {
+        currentUserRole = currentMember.role.toLowerCase()
+      }
     }
 
     const dues = await prisma.due.findMany({
-      where: { roomId },
+      where: { roomId: roomId },
+      orderBy: { createdAt: "desc" },
       include: {
         invoices: {
           include: {
-            member: true,
-            payments: true,
-          },
-        },
-      },
-      orderBy: { createdAt: "desc" },
+            member: {
+              select: { name: true, email: true }
+            },
+            payments: {
+              orderBy: { id: 'desc' },
+              take: 1
+            }
+          }
+        }
+      }
     })
 
     return NextResponse.json({
       success: true,
       data: safeJson(dues),
+      currentUserRole: currentUserRole,
     })
+
   } catch (error) {
     console.error("Error fetching dues:", error)
     return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 })
@@ -82,6 +101,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     const body = await req.json()
     console.log("[v0] Received body:", body)
 
+    // Validasi input
     if (!body.name?.trim()) {
       return NextResponse.json({ success: false, message: "Nama iuran harus diisi" }, { status: 400 })
     }
@@ -121,32 +141,23 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     let startDate: Date | null = null
 
     try {
-      console.log("[v0] Parsing nextDueDate:", body.nextDueDate)
       nextDueDate = parseDate(body.nextDueDate)!
-
       if (body.isRecurring) {
-        console.log("[v0] Parsing startDate:", body.startDate)
         startDate = parseDate(body.startDate)!
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Format tanggal tidak valid"
-      console.error("[v0] Date parsing error:", errorMessage)
-      return NextResponse.json(
-        { success: false, message: errorMessage },
-        { status: 400 },
-      )
+      return NextResponse.json({ success: false, message: errorMessage }, { status: 400 })
     }
 
-    // Buat Due (Iuran)
+    // 1. Buat Data Iuran (Due)
     const due = await prisma.due.create({
       data: {
         roomId,
         name: body.name.trim(),
         description: body.description?.trim() || null,
         amount: amountBigInt,
-        // --- TAMBAHAN: Simpan Nomor Rekening ---
         accountNumber: body.accountNumber?.trim() || null, 
-        // ---------------------------------------
         isRecurring: body.isRecurring ?? false,
         frequency: body.isRecurring ? body.frequency || "MONTHLY" : null,
         interval: body.isRecurring ? Math.max(1, Number(body.interval) || 1) : null,
@@ -158,23 +169,38 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
     console.log("[v0] Due created successfully:", due.id)
 
-    // --- BAGIAN INI DIHAPUS AGAR MEMBER TIDAK OTOMATIS DITAGIH ---
-    /*
-    const members = await prisma.roomMember.findMany({
-      where: { roomId, status: "ACTIVE" },
-    })
+    // 2. TRIGGER NOTIFIKASI OTOMATIS KE SEMUA ANGGOTA AKTIF
+    try {
+      const members = await prisma.roomMember.findMany({
+        where: { roomId, status: "ACTIVE" },
+        select: { userId: true }
+      })
 
-    for (const member of members) {
-      await prisma.invoice.create({ ... })
+      if (members.length > 0) {
+        // Menggunakan createMany untuk efisiensi jika member banyak
+        await prisma.notification.createMany({
+          data: members.map((member) => ({
+            userId: member.userId,
+            roomId: roomId,
+            type: "INVOICE_SENT", 
+            title: "Iuran Baru Tersedia",
+            message: `Ada iuran baru "${due.name}" di grup ${room.name} sebesar Rp ${Number(due.amount).toLocaleString("id-ID")}.`,
+            priority: "NORMAL",
+          }))
+        })
+        console.log(`[Notif] Berhasil mengirim notifikasi ke ${members.length} anggota grup.`)
+      }
+    } catch (notifError) {
+      // Kita bungkus try-catch agar jika notifikasi gagal, iuran tetap dianggap sukses tersimpan
+      console.error("[Notif] Gagal mengirim notifikasi:", notifError)
     }
-    */
-    // -------------------------------------------------------------
 
     return NextResponse.json({
       success: true,
-      message: "Iuran berhasil dibuat (Silakan tambahkan anggota secara manual)",
+      message: "Iuran berhasil dibuat dan anggota telah dinotifikasi",
       data: safeJson(due),
     })
+
   } catch (error) {
     console.error("[v0] Error creating due:", error)
     return NextResponse.json(
@@ -186,4 +212,4 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       { status: 500 },
     )
   }
-} 
+}

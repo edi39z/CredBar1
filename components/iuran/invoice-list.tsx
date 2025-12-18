@@ -1,7 +1,9 @@
+import { useState } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { CheckCircle, Send, Edit3 } from "lucide-react"
-import { Due, Invoice, getStatusColor, getStatusIcon, getStatusLabel } from "./shared"
+import { Check, MessageCircle, MoreHorizontal, Eye, ImageIcon } from "lucide-react"
+import { Invoice, Due } from "./shared"
+import { PaymentDetailModal } from "./modals"
 
 interface InvoiceListProps {
   due: Due
@@ -18,113 +20,133 @@ export function InvoiceList({
   due,
   isAdmin,
   currentMemberId,
-  // onOpenInviteModal, // Tidak dipakai lagi tombolnya
+  onOpenInviteModal,
   onPay,
   onConfirm,
   onSendMessage,
   onEditAmount,
 }: InvoiceListProps) {
+  const [showDetailModal, setShowDetailModal] = useState(false)
+  const [selectedDetail, setSelectedDetail] = useState<any>(null)
+
+  const handleOpenDetail = (inv: Invoice, payment: any) => {
+    setSelectedDetail({
+      invoiceId: inv.id,
+      userName: inv.member?.name || "Anggota",
+      amount: inv.amount,
+      status: inv.status,
+      date: payment ? new Date(payment.paidAt || payment.createdAt).toLocaleDateString("id-ID", {
+        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
+      }) : "-",
+      note: payment?.note || "-",
+      proofUrl: payment?.proofFile || null,
+      method: payment?.method || "-"
+    })
+    setShowDetailModal(true)
+  }
+
+  const handleConfirmFromModal = (id: string) => {
+    onConfirm(id)
+    setShowDetailModal(false)
+  }
+
   return (
-    <Card className="bg-white rounded-2xl shadow-lg border-0 overflow-hidden">
-      <div className="p-6 md:p-8">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">Daftar Tagihan</h2>
-          {/* Tombol Tambah Tagihan DIHAPUS */}
+    <>
+      <Card className="bg-white rounded-2xl shadow-lg border-0 mb-6 overflow-hidden">
+        <div className="p-6">
+          <h3 className="text-lg font-bold text-gray-900 mb-4">Daftar Tagihan Anggota</h3>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm text-left">
+              <thead className="bg-gray-50 text-gray-600 font-medium border-b">
+                <tr>
+                  <th className="py-3 px-4">Nama Anggota</th>
+                  <th className="py-3 px-4">Info Pembayaran</th>
+                  <th className="py-3 px-4 text-center">Status</th>
+                  <th className="py-3 px-4 text-center">Aksi</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {due.invoices?.map((inv) => {
+                  const latestPayment = inv.payments && inv.payments.length > 0 ? inv.payments[0] : null
+                  // PERBAIKAN DISINI: Menambahkan (latestPayment as any)
+                  const hasProof = (latestPayment as any)?.proofFile
+
+                  return (
+                    <tr key={inv.id} className="hover:bg-gray-50 transition-colors">
+                      {/* NAMA */}
+                      <td className="py-3 px-4 align-top">
+                        <p className="font-semibold text-gray-900">{inv.member?.name}</p>
+                        <p className="text-xs text-blue-600 font-medium mt-1">
+                          Rp {Number(inv.amount).toLocaleString("id-ID")}
+                        </p>
+                      </td>
+
+                      {/* INFO BAYAR */}
+                      <td className="py-3 px-4 align-top">
+                        {latestPayment ? (
+                          <div className="space-y-1">
+                            <p className="text-xs text-gray-700">
+                              <span className="font-semibold text-gray-500">Bayar:</span>{" "}
+                              {new Date(latestPayment.paidAt || (latestPayment as any).createdAt).toLocaleDateString("id-ID")}
+                            </p>
+                            {/* Menggunakan casting any juga untuk note jika type-nya belum ada */}
+                            {(latestPayment as any).note && (
+                              <p className="text-xs text-gray-500 italic truncate max-w-[150px]">"{(latestPayment as any).note}"</p>
+                            )}
+                            {hasProof && (
+                                <span className="inline-flex items-center gap-1 text-[10px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded border border-blue-100 mt-1">
+                                    <ImageIcon size={10} /> Ada Bukti
+                                </span>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-gray-400 text-xs">-</span>
+                        )}
+                      </td>
+
+                      {/* STATUS */}
+                      <td className="py-3 px-4 text-center align-top">
+                        <span className={`px-2 py-1 rounded-full text-xs font-semibold inline-block ${
+                            inv.status === "PAID" ? "bg-green-100 text-green-700" : 
+                            inv.status === "PENDING" ? "bg-yellow-100 text-yellow-700" : "bg-red-100 text-red-700"
+                          }`}>
+                          {inv.status === "PAID" ? "Lunas" : inv.status === "PENDING" ? "Menunggu" : "Belum"}
+                        </span>
+                      </td>
+
+                      {/* AKSI */}
+                      <td className="py-3 px-4">
+                        <div className="flex justify-center gap-2">
+                          <Button size="sm" variant="outline" className="h-8 border-blue-200 text-blue-600 hover:bg-blue-50 px-2" onClick={() => handleOpenDetail(inv, latestPayment)} title="Lihat Detail">
+                            <Eye size={16} className="mr-1" /> Detail
+                          </Button>
+
+                          {inv.status === "PENDING" && (
+                            <Button size="sm" className="bg-green-500 hover:bg-green-600 text-white h-8 w-8 p-0" onClick={() => onConfirm(inv.id)} title="Konfirmasi">
+                              <Check size={16} />
+                            </Button>
+                          )}
+
+                          <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-gray-400 hover:text-gray-600" onClick={() => onEditAmount(inv)} title="Menu">
+                            <MoreHorizontal size={16} />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
+      </Card>
 
-        <div className="space-y-3">
-          {due.invoices.map((invoice) => {
-            const memberName = invoice.member?.name || "Unknown Member"
-            const memberNominal = invoice.amount
-            const memberStatus = invoice.status
-            const isOwnInvoice = currentMemberId && String(invoice.memberId) === String(currentMemberId)
-
-            return (
-              <div key={invoice.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex-1">
-                    <p className="font-bold text-gray-900">
-                      {memberName} {isOwnInvoice && <span className="text-xs text-blue-500">(Anda)</span>}
-                    </p>
-                    <p className="text-sm text-gray-600">Rp {Number(memberNominal).toLocaleString("id-ID")}</p>
-                  </div>
-                  <span
-                    className={`text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1 ${getStatusColor(memberStatus)}`}
-                  >
-                    {getStatusIcon(memberStatus)}
-                    {getStatusLabel(memberStatus)}
-                  </span>
-                </div>
-
-                <div className="mb-3">
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div
-                      className={`h-2 rounded-full transition-all ${
-                        memberStatus === "PAID"
-                          ? "bg-green-500"
-                          : memberStatus === "PENDING"
-                            ? "bg-yellow-500"
-                            : "bg-red-500"
-                      }`}
-                      style={{ width: memberStatus === "PAID" ? "100%" : "0%" }}
-                    />
-                  </div>
-                </div>
-
-                {invoice.paidDate && (
-                  <p className="text-xs text-gray-600 mb-2">
-                    Bayar: {new Date(invoice.paidDate).toLocaleDateString("id-ID")}
-                  </p>
-                )}
-
-                {invoice.description && (
-                  <p className="text-xs text-gray-600 mb-2 italic">Catatan: {invoice.description}</p>
-                )}
-
-                <div className="flex gap-2 flex-wrap">
-                  {isAdmin && (
-                    <>
-                      {memberStatus === "PENDING" && (
-                        <Button
-                          onClick={() => onConfirm(invoice.id)}
-                          className="bg-green-500 hover:bg-green-600 text-white text-xs py-1 px-3"
-                        >
-                          Konfirmasi
-                        </Button>
-                      )}
-
-                      {(memberStatus === "DRAFT" || memberStatus === "OVERDUE") && !isOwnInvoice && (
-                        <Button
-                          onClick={() => onEditAmount(invoice)}
-                          className="bg-yellow-500 hover:bg-yellow-600 text-white text-xs py-1 px-3 flex items-center gap-1"
-                        >
-                          <Edit3 size={12} /> Edit Nominal
-                        </Button>
-                      )}
-
-                      {(memberStatus === "DRAFT" || memberStatus === "OVERDUE") && isOwnInvoice && (
-                        <Button
-                          onClick={() => onPay(invoice)}
-                          className="bg-blue-500 hover:bg-blue-600 text-white text-xs py-1 px-3"
-                        >
-                          Bayar
-                        </Button>
-                      )}
-
-                      <Button
-                        onClick={() => onSendMessage(invoice)}
-                        className="bg-purple-500 hover:bg-purple-600 text-white text-xs py-1 px-3"
-                      >
-                        <Send size={14} />
-                      </Button>
-                    </>
-                  )}
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      </div>
-    </Card>
+      <PaymentDetailModal
+        show={showDetailModal}
+        onClose={() => setShowDetailModal(false)}
+        data={selectedDetail}
+        onConfirm={handleConfirmFromModal}
+      />
+    </>
   )
 }

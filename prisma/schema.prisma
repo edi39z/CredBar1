@@ -73,14 +73,22 @@ enum NotificationPriority {
 model User {
     id        Int      @id @default(autoincrement())
     email     String   @unique
-    name      String?
+    name      String?  @default("Anggota Baru")
     password  String
-    avatarUrl String?
+    avatarUrl String?  @default("")
+    
+    // Field Tambahan untuk Profil dengan Default Value
+    phone     String?  @default("-")
+    address   String?  @default("Belum diatur")
+    city      String?  @default("-")
+    province  String?  @default("-")
+    zipCode   String?  @default("-")
+    
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
-    // Relations
-    rooms            Room[]            @relation("UserRooms") // created rooms
+    // Relations (Tetap sama)
+    rooms            Room[]            @relation("UserRooms")
     memberships      RoomMember[]
     invoices         Invoice[]         @relation("InvoiceMember")
     payments         Payment[]         @relation("PaymentCreatedBy")
@@ -90,7 +98,6 @@ model User {
     reminderSettings ReminderSetting[]
     Invite           Invite[]
 }
-
 model Room {
     id          Int      @id @default(autoincrement())
     name        String
@@ -183,19 +190,25 @@ model Invoice {
 }
 
 model Payment {
-    id          Int           @id @default(autoincrement())
-    invoiceId   String
-    amount      BigInt
-    method      PaymentMethod
-    paidAt      DateTime      @default(now())
-    note        String?
-    createdById Int
+  id          Int           @id @default(autoincrement())
+  invoiceId   String
+  amount      BigInt
+  method      PaymentMethod
+  
+  // --- TAMBAHAN BARU ---
+  status      String        @default("PENDING") // PENDING, VERIFIED, REJECTED
+  proofFile   String?       // URL gambar bukti bayar dari Cloudinary
+  // ---------------------
 
-    invoice   Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
-    createdBy User    @relation("PaymentCreatedBy", fields: [createdById], references: [id])
+  paidAt      DateTime      @default(now())
+  note        String?
+  createdById Int
 
-    @@index([invoiceId])
-    @@index([createdById])
+  invoice   Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  createdBy User    @relation("PaymentCreatedBy", fields: [createdById], references: [id])
+
+  @@index([invoiceId])
+  @@index([createdById])
 }
 
 model Debt {

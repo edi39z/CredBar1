@@ -21,9 +21,13 @@ export async function POST(
       return NextResponse.json({ success: false, message: "Invoice ID tidak valid" }, { status: 400 })
     }
 
-    // 2. Cek apakah invoice ada
+    // 2. Cek apakah invoice ada dan ambil detail untuk notifikasi
     const invoice = await prisma.invoice.findUnique({
       where: { id: invoiceId },
+      include: {
+        room: { select: { name: true } },
+        due: { select: { name: true } }
+      }
     })
 
     if (!invoice) {
@@ -31,14 +35,37 @@ export async function POST(
     }
 
     // 3. Update status menjadi PAID (Lunas)
+    // Sekaligus update status di tabel Payment yang terkait agar sinkron
     const updatedInvoice = await prisma.invoice.update({
       where: { id: invoiceId },
       data: {
         status: "PAID",
-        // Opsional: update paidDate ke waktu sekarang jika belum ada
-        // paidDate: invoice.paidDate ? invoice.paidDate : new Date() 
+        paidDate: new Date(), // Menandakan tanggal pelunasan resmi
       },
     })
+
+    // UPDATE: Update juga status verifikasi di tabel Payment
+    await prisma.payment.updateMany({
+      where: { invoiceId: invoiceId },
+      data: { status: "VERIFIED" }
+    })
+
+    // 4. TRIGGER NOTIFIKASI KE USER (PEMBAYAR)
+    try {
+      await prisma.notification.create({
+        data: {
+          userId: invoice.memberId,
+          roomId: invoice.roomId,
+          type: "INVOICE_SENT", // Menggunakan enum yang tersedia
+          title: "Pembayaran Diterima",
+          message: `Pembayaran iuran "${invoice.due?.name || 'Iuran'}" di grup ${invoice.room.name} telah dikonfirmasi oleh admin. Status: Lunas.`,
+          priority: "NORMAL",
+        },
+      })
+      console.log(`[Notif] Notifikasi konfirmasi pembayaran dikirim ke User ID: ${invoice.memberId}`)
+    } catch (notifError) {
+      console.error("[Notif] Gagal mengirim notifikasi konfirmasi:", notifError)
+    }
 
     return NextResponse.json({
       success: true,

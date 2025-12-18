@@ -1,8 +1,7 @@
-// /app/api/dashboard/route.ts
 import { prisma } from "@/lib/prisma";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { verifyAuthToken } from "@/lib/auth";
 
-// Konversi BigInt → Number untuk JSON
 function toSafeJSON(obj: any) {
   return JSON.parse(
     JSON.stringify(obj, (_, value) =>
@@ -11,117 +10,95 @@ function toSafeJSON(obj: any) {
   );
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
-    // =====================================================
-    // 1) Total rooms
-    // =====================================================
-    const totalGroups = await prisma.room.count();
+    const token = req.cookies.get("auth_token")?.value;
+    if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    // =====================================================
-    // 2) Total unpaid invoices
-    // =====================================================
-    const unpaid = await prisma.invoice.aggregate({
-      _sum: { amount: true },
-      where: { status: "PENDING" },
-    });
+    const payload = await verifyAuthToken(token);
+    if (!payload || !payload.sub) return NextResponse.json({ error: "Invalid token" }, { status: 401 });
 
-    // =====================================================
-    // 3) Payments in last 30 days (progress chart)
-    // =====================================================
-    const since = new Date();
-    since.setDate(since.getDate() - 29); // 30-day window
+    const userId = Number(payload.sub);
 
-    const payments = await prisma.payment.findMany({
-      where: { paidAt: { gte: since } },
-      select: {
-        id: true,
-        amount: true,
-        paidAt: true,
-        invoice: {
-          select: {
-            code: true,
-            room: { select: { id: true, name: true } },
-            member: { select: { id: true, name: true } },
-            status: true,
-          },
-        },
+    console.log(`\n================ DEBUG DASHBOARD USER ${userId} ================`);
+
+    // 1. Ambil SEMUA Invoice
+    const allInvoices = await prisma.invoice.findMany({
+      where: { memberId: userId },
+      include: {
+        room: { select: { name: true } },
       },
-      orderBy: { paidAt: "asc" },
+      orderBy: { createdAt: "desc" }
     });
 
-    const paymentProgressData = payments.map((p) => ({
-      id: p.id,
-      date: p.paidAt,
-      amount: p.amount,
-      invoiceCode: p.invoice.code,
-      roomName: p.invoice.room?.name ?? null,
-      memberName: p.invoice.member?.name ?? null,
-    }));
+    console.log(`[DATABASE] Jumlah total invoice ditemukan: ${allInvoices.length}`);
+    if (allInvoices.length > 0) {
+      console.log(`[DATABASE] Contoh status invoice pertama: ${allInvoices[0].status}`);
+      console.log(`[DATABASE] Contoh tanggal invoice pertama: ${allInvoices[0].createdAt}`);
+    }
 
-    // =====================================================
-    // 4) Due breakdown
-    // =====================================================
-    const dues = await prisma.due.findMany({
-      select: { id: true, name: true, amount: true, roomId: true, isActive: true },
-      orderBy: { amount: "desc" },
-      take: 50,
+    // 2. Filter 30 Hari
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    console.log(`[FILTER] Mencari data sejak tanggal: ${thirtyDaysAgo.toISOString()}`);
+
+    const filteredInvoices = allInvoices.filter(inv => {
+        const invDate = new Date(inv.createdAt);
+        return invDate >= thirtyDaysAgo;
     });
 
-    const breakdown = dues.map((d) => ({
-      id: d.id,
-      name: d.name,
-      amount: d.amount,
-      roomId: d.roomId,
-      isActive: d.isActive,
-    }));
+    console.log(`[FILTER] Jumlah invoice yang lolos filter 30 hari: ${filteredInvoices.length}`);
 
-    // =====================================================
-    // 5) Transaction history (latest 10)
-    // =====================================================
-    const transactions = await prisma.payment.findMany({
-      orderBy: { paidAt: "desc" },
-      take: 10,
-      select: {
-        id: true,
-        amount: true,
-        paidAt: true,
-        invoice: {
-          select: {
-            code: true,
-            room: { select: { name: true } },
-            member: { select: { name: true } },
-            status: true,
-          },
-        },
-      },
+    // 3. Mapping Data untuk Grafik
+    const paymentProgressData = filteredInvoices.map((inv) => {
+        const isPaid = inv.status === "PAID";
+        const nominal = Number(inv.amount);
+        
+        // Logika debug per baris (Hanya tampilkan 3 teratas agar tidak spam log)
+        return {
+          date: new Date(inv.createdAt).toLocaleDateString("id-ID", { day: 'numeric', month: 'short' }),
+          paid: isPaid ? nominal : 0,
+          pending: !isPaid ? nominal : 0,
+        };
+      }).reverse();
+
+    console.log(`[FINAL] Isi paymentProgressData yang dikirim ke frontend:`, JSON.stringify(paymentProgressData, null, 2));
+
+    // --- SISANYA TETAP SAMA ---
+    const totalGroups = await prisma.roomMember.count({ where: { userId, status: "ACTIVE" } });
+    const unpaidAmount = allInvoices
+      .filter(inv => ["PENDING", "OVERDUE", "DRAFT"].includes(inv.status))
+      .reduce((acc, inv) => acc + Number(inv.amount), 0);
+
+    const duesBreakdown = await prisma.due.findMany({
+      where: { room: { members: { some: { userId, status: "ACTIVE" } } }, isActive: true },
+      select: { id: true, name: true, amount: true },
+      take: 5
     });
 
-    const mappedTx = transactions.map((t) => ({
-      id: t.id,
-      name: t.invoice.member?.name ?? "Unknown",
-      group: t.invoice.room?.name ?? "Unknown",
-      amount: t.amount,
-      date: t.paidAt,
-      status: t.invoice.status === "PAID" ? "Lunas" : "Menunggu",
-      invoiceCode: t.invoice.code,
+    const transactions = allInvoices.slice(0, 10).map((inv) => ({
+      id: inv.id,
+      group: inv.room?.name || "Grup Umum",
+      amount: inv.amount,
+      date: inv.paidDate || inv.createdAt,
+      status: inv.status === "PAID" ? "Lunas" : "Menunggu",
+      invoiceCode: inv.code,
     }));
 
-    // =====================================================
-    // Send response (protected from BigInt errors)
-    // =====================================================
+    console.log(`================ DEBUG END ================\n`);
+
     return NextResponse.json(
       toSafeJSON({
         totalGroups,
-        unpaidAmount: unpaid._sum.amount ?? 0,
+        unpaidAmount,
         paymentProgressData,
-        breakdown,
-        transactions: mappedTx,
+        duesBreakdown,
+        transactions,
       })
     );
 
   } catch (err) {
-    console.error("Dashboard error:", err);
+    console.error("CRITICAL DASHBOARD ERROR:", err);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }
